@@ -20,6 +20,9 @@ import CityMapSector7G from './pages/CityMapSector7G';
 import CityMapNeuralArchives from './pages/CityMapNeuralArchives';
 import CityMapAegisBulwark from './pages/CityMapAegisBulwark';
 import CityMapSynthSea from './pages/CityMapSynthSea';
+import CityMapNeuroGrid7 from './pages/CityMapNeuroGrid7';
+import CityMapEchoVault from './pages/CityMapEchoVault';
+import CityMapVoidBazaar from './pages/CityMapVoidBazaar';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageId>('aethel');
@@ -132,6 +135,12 @@ export default function App() {
               <Users className="w-4 h-4" /> Roster
             </button>
             <button 
+              onClick={() => handleNavigate('map')}
+              className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'map' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+            >
+              <Map className="w-4 h-4" /> World Map
+            </button>
+            <button 
               onClick={() => handleNavigate('combat')}
               className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'combat' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
             >
@@ -171,6 +180,9 @@ export default function App() {
           {currentPage === 'city-neural-archives' && <CityMapNeuralArchives key="city-neural-archives" onNavigate={handleNavigate} />}
           {currentPage === 'city-aegis-bulwark' && <CityMapAegisBulwark key="city-aegis-bulwark" onNavigate={handleNavigate} />}
           {currentPage === 'city-synth-sea' && <CityMapSynthSea key="city-synth-sea" onNavigate={handleNavigate} />}
+          {currentPage === 'city-neurogrid-7' && <CityMapNeuroGrid7 key="city-neurogrid-7" onNavigate={handleNavigate} />}
+          {currentPage === 'city-echo-vault' && <CityMapEchoVault key="city-echo-vault" onNavigate={handleNavigate} />}
+          {currentPage === 'city-void-bazaar' && <CityMapVoidBazaar key="city-void-bazaar" onNavigate={handleNavigate} />}
           {currentPage === 'logs' && <BehaviorLogs key="logs" onNavigate={handleNavigate} />}
           {currentPage === 'combat' && <Combat key="combat" onNavigate={handleNavigate} />}
         </AnimatePresence>
@@ -198,6 +210,13 @@ export default function App() {
         >
           <Users className="w-5 h-5" />
           <span className="text-[10px] font-mono uppercase">Roster</span>
+        </button>
+        <button 
+          onClick={() => handleNavigate('map')}
+          className={`flex flex-col items-center gap-1 p-2 ${currentPage === 'map' ? 'text-neon-cyan' : 'text-slate-500'}`}
+        >
+          <Map className="w-5 h-5" />
+          <span className="text-[10px] font-mono uppercase">Map</span>
         </button>
         <button 
           onClick={() => handleNavigate('combat')}

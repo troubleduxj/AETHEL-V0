@@ -11,7 +11,10 @@ const cities = [
   { id: 'city-sector-7g', name: 'Sector 7G', status: 'Contested', coordinates: { x: 80, y: 20 }, activeEntities: ['3'], type: 'Combat / High Risk' },
   { id: 'city-neural-archives', name: 'The Neural Archives', status: 'Safe', coordinates: { x: 30, y: 70 }, activeEntities: ['4'], type: 'Lore / Experimental' },
   { id: 'city-aegis-bulwark', name: 'Aegis Bulwark', status: 'Safe', coordinates: { x: 70, y: 80 }, activeEntities: [], type: 'Defense / Faction Hub' },
-  { id: 'city-synth-sea', name: 'The Synth-Sea', status: 'Unknown', coordinates: { x: 85, y: 55 }, activeEntities: ['5'], type: 'Exploration / Anomalies' }
+  { id: 'city-synth-sea', name: 'The Synth-Sea', status: 'Unknown', coordinates: { x: 85, y: 55 }, activeEntities: ['5'], type: 'Exploration / Anomalies' },
+  { id: 'city-neurogrid-7', name: 'NeuroGrid-7', status: 'Safe', coordinates: { x: 45, y: 25 }, activeEntities: [], type: 'AI Training Center' },
+  { id: 'city-echo-vault', name: 'ECHO-VAULT', status: 'Safe', coordinates: { x: 15, y: 15 }, activeEntities: [], type: 'AI Memory & Consciousness Space' },
+  { id: 'city-void-bazaar', name: 'VOID BAZAAR', status: 'Safe', coordinates: { x: 60, y: 50 }, activeEntities: [], type: 'AI Social & Trading Hub' }
 ];
 
 interface WorldMapProps {
