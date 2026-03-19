@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="100%" height="100%">
+  <defs>
+    <radialGradient id="glowPurple" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#b300ff" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#ff00ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blurPurple" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="200" cy="250" r="140" fill="url(#glowPurple)" opacity="0.4">
+    <animate attributeName="cy" values="240;260;240" dur="5s" repeatCount="indefinite"/>
+  </circle>
+  <g filter="url(#blurPurple)">
+    <!-- 神经元连接 -->
+    <path d="M200,250 Q250,150 300,200 T350,100" fill="none" stroke="#ff66ff" stroke-width="2" opacity="0.6">
+      <animate attributeName="d" values="M200,250 Q250,150 300,200 T350,100; M200,250 Q220,180 280,180 T320,120; M200,250 Q250,150 300,200 T350,100" dur="4s" repeatCount="indefinite"/>
+    </path>
+    <path d="M200,250 Q150,350 100,300 T50,400" fill="none" stroke="#cc00ff" stroke-width="2" opacity="0.6">
+      <animate attributeName="d" values="M200,250 Q150,350 100,300 T50,400; M200,250 Q180,320 120,320 T80,380; M200,250 Q150,350 100,300 T50,400" dur="5s" repeatCount="indefinite"/>
+    </path>
+    <!-- 核心球体 -->
+    <circle cx="200" cy="250" r="35" fill="#e600e6">
+      <animate attributeName="cy" values="240;260;240" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="200" cy="250" r="50" fill="none" stroke="#ff99ff" stroke-width="1" stroke-dasharray="5,5">
+      <animateTransform attributeName="transform" type="rotate" from="0 200 250" to="360 200 250" dur="8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>
