@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
 import { PageId } from '../types';
-import { mockBehaviorLogs, mockEntities } from '../data/mockData';
+import { mockBehaviorLogs } from '../data/mockData';
 import { Activity, Swords, MessageCircle, Compass, ChevronRight, X } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 interface BehaviorLogsProps {
   onNavigate: (page: PageId, entityId?: string) => void;
 }
 
 export function BehaviorLogs({ onNavigate }: BehaviorLogsProps) {
+  const { roster } = useAppContext();
   const [selectedLog, setSelectedLog] = useState<typeof mockBehaviorLogs[0] | null>(null);
 
   const getActionIcon = (type: string) => {
@@ -46,7 +48,7 @@ export function BehaviorLogs({ onNavigate }: BehaviorLogsProps) {
 
       <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-700 before:to-transparent">
         {mockBehaviorLogs.map((log, idx) => {
-          const entity = mockEntities.find(e => e.id === log.entityId);
+          const entity = roster.find(e => e.id === log.entityId);
           if (!entity) return null;
 
           return (

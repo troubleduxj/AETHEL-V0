@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { EntityCard } from '../components/EntityCard';
-import { mockEntities } from '../data/mockData';
+import { useAppContext } from '../context/AppContext';
 import { PageId } from '../types';
 import { Filter } from 'lucide-react';
 
@@ -10,6 +10,8 @@ interface RosterProps {
 }
 
 export function Roster({ onNavigate }: RosterProps) {
+  const { roster } = useAppContext();
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -31,13 +33,13 @@ export function Roster({ onNavigate }: RosterProps) {
             Filter
           </button>
           <div className="px-4 py-2 rounded-lg bg-black/40 border border-white/5 text-sm font-mono text-slate-400">
-            Total: <span className="text-white">{mockEntities.length}</span>
+            Total: <span className="text-white">{roster.length}</span>
           </div>
         </div>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {mockEntities.map((entity, index) => (
+        {roster.map((entity, index) => (
           <motion.div
             key={entity.id}
             initial={{ opacity: 0, y: 20 }}

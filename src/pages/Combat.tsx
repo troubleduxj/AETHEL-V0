@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
 import { PageId } from '../types';
-import { mockEntities } from '../data/mockData';
+import { summonPool } from '../data/mockData';
+import { useAppContext } from '../context/AppContext';
 import { Shield, Swords, ArrowLeft, Zap, Loader2 } from 'lucide-react';
 import { generateCombatAction } from '../services/geminiService';
 
@@ -20,11 +21,15 @@ interface CombatProps {
 }
 
 export function Combat({ onNavigate }: CombatProps) {
-  const playerEntity = mockEntities[2]; // Bastion
-  const enemyEntity = mockEntities[1];  // Cipher
+  const { roster } = useAppContext();
+  
+  // Pick a random player entity from roster, fallback to first if somehow empty
+  const playerEntity = roster.length > 0 ? roster[Math.floor(Math.random() * roster.length)] : summonPool[0];
+  // Pick a random enemy from summonPool
+  const enemyEntity = summonPool[Math.floor(Math.random() * summonPool.length)];
 
   const [combatLog, setCombatLog] = useState<{id: number, text: string, type: 'player' | 'enemy' | 'system'}[]>([
-    { id: 1, text: 'Combat initiated in Quarantine Zone 4.', type: 'system' }
+    { id: 1, text: `Combat initiated. ${playerEntity.name} vs ${enemyEntity.name}.`, type: 'system' }
   ]);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [enemyShake, setEnemyShake] = useState(false);
@@ -62,13 +67,13 @@ export function Combat({ onNavigate }: CombatProps) {
     }
 
     if (action === 'Attack') {
-      addLog(`${playerEntity.name} executes Absolute Override.`, 'player');
+      addLog(`${playerEntity.name} executes attack protocol.`, 'player');
       // Trigger enemy hit effect
       setEnemyShake(true);
       spawnParticles('#f000ff', 75, 50); // Approximate center of enemy panel
       setTimeout(() => setEnemyShake(false), 500);
     } else if (action === 'Defend') {
-      addLog(`${playerEntity.name} activates Firewall Protocol.`, 'player');
+      addLog(`${playerEntity.name} activates defensive matrix.`, 'player');
       setPlayerShield(true);
       spawnParticles('#00f3ff', 25, 50);
       setTimeout(() => setPlayerShield(false), 1000);
@@ -82,8 +87,8 @@ export function Combat({ onNavigate }: CombatProps) {
       const currentLogForAi = combatLog.map(l => ({ text: l.text, type: l.type }));
       // Add the player's action to the log we send
       currentLogForAi.push({ text: `Player intervened: Command [${action}] issued.`, type: 'system' });
-      if (action === 'Attack') currentLogForAi.push({ text: `${playerEntity.name} executes Absolute Override.`, type: 'player' });
-      if (action === 'Defend') currentLogForAi.push({ text: `${playerEntity.name} activates Firewall Protocol.`, type: 'player' });
+      if (action === 'Attack') currentLogForAi.push({ text: `${playerEntity.name} executes attack protocol.`, type: 'player' });
+      if (action === 'Defend') currentLogForAi.push({ text: `${playerEntity.name} activates defensive matrix.`, type: 'player' });
 
       const aiResponse = await generateCombatAction(playerEntity, enemyEntity, currentLogForAi);
       

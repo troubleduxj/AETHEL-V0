@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
 import { Activity, Database, Network, X, ChevronRight } from 'lucide-react';
 import { PageId } from '../types';
-import { mockEntities } from '../data/mockData';
 import { EntityCard } from '../components/EntityCard';
+import { useAppContext } from '../context/AppContext';
 
 interface NexusProps {
   onNavigate: (page: PageId, entityId?: string) => void;
@@ -41,10 +41,11 @@ const mockLogs = [
 ];
 
 export function Nexus({ onNavigate }: NexusProps) {
+  const { roster } = useAppContext();
   const [selectedLog, setSelectedLog] = useState<typeof mockLogs[0] | null>(null);
 
   // Get top 2 entities for quick access
-  const featuredEntities = mockEntities.slice(0, 2);
+  const featuredEntities = roster.slice(0, 2);
 
   return (
     <motion.div 
@@ -57,7 +58,7 @@ export function Nexus({ onNavigate }: NexusProps) {
         <h1 className="font-display text-4xl md:text-5xl font-bold text-white tracking-tighter mb-2">
           NEXUS <span className="text-neon-cyan font-light">CORE</span>
         </h1>
-        <p className="text-slate-400 font-mono text-sm">System Status: <span className="text-neon-emerald">Optimal</span> | Active Entities: {mockEntities.length}</p>
+        <p className="text-slate-400 font-mono text-sm">System Status: <span className="text-neon-emerald">Optimal</span> | Active Entities: {roster.length}</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

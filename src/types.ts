@@ -42,7 +42,7 @@ export interface AIEntity {
   imageUrl: string;
 }
 
-export type PageId = 'nexus' | 'roster' | 'core' | 'synapse' | 'map' | 'logs' | 'combat' | 'aethel';
+export type PageId = 'nexus' | 'roster' | 'core' | 'synapse' | 'map' | 'logs' | 'combat' | 'aethel' | 'summon' | 'city-nexus-prime' | 'city-silicon-wastes' | 'city-sector-7g' | 'city-neural-archives' | 'city-aegis-bulwark' | 'city-synth-sea';
 
 export interface MapRegion {
   id: string;

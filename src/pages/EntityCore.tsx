@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
 import { AIEntity, PageId } from '../types';
-import { ArrowLeft, Cpu, Zap, Brain, Shield, MessageSquare, Plus, Trash2, Clock, AlertTriangle, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Cpu, Zap, Brain, Shield, MessageSquare, Plus, Trash2, Clock, AlertTriangle, Lightbulb, ArrowUpCircle, Save, Database, Loader2 } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 interface EntityCoreProps {
   entity: AIEntity;
@@ -10,22 +11,82 @@ interface EntityCoreProps {
 }
 
 export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
+  const { updateEntity, dataFragments, spendDataFragments } = useAppContext();
   const [personality, setPersonality] = useState(entity.personality);
   const [skills, setSkills] = useState(entity.skills);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Sync state if entity changes externally
+  useEffect(() => {
+    setPersonality(entity.personality);
+    setSkills(entity.skills);
+    setHasUnsavedChanges(false);
+  }, [entity]);
+
+  const handleEnhanceStat = (statName: keyof AIEntity['stats']) => {
+    const cost = 20;
+    if (dataFragments < cost) return;
+    
+    spendDataFragments(cost);
+    updateEntity({
+      ...entity,
+      stats: {
+        ...entity.stats,
+        [statName]: Math.min(100, entity.stats[statName] + 5)
+      }
+    });
+  };
 
   const statConfig = [
-    { label: 'Processing', value: entity.stats.processing, icon: Cpu, color: 'bg-blue-400' },
-    { label: 'Adaptability', value: entity.stats.adaptability, icon: Zap, color: 'bg-neon-cyan' },
-    { label: 'Creativity', value: entity.stats.creativity, icon: Brain, color: 'bg-neon-fuchsia' },
-    { label: 'Stability', value: entity.stats.stability, icon: Shield, color: 'bg-neon-emerald' },
+    { key: 'processing', label: 'Processing', value: entity.stats.processing, icon: Cpu, color: 'bg-blue-400' },
+    { key: 'adaptability', label: 'Adaptability', value: entity.stats.adaptability, icon: Zap, color: 'bg-neon-cyan' },
+    { key: 'creativity', label: 'Creativity', value: entity.stats.creativity, icon: Brain, color: 'bg-neon-fuchsia' },
+    { key: 'stability', label: 'Stability', value: entity.stats.stability, icon: Shield, color: 'bg-neon-emerald' },
   ];
 
   const handleSliderChange = (trait: keyof typeof personality, value: number) => {
     setPersonality(prev => ({ ...prev, [trait]: value }));
+    setHasUnsavedChanges(true);
   };
 
   const removeSkill = (id: string) => {
-    setSkills(prev => prev.filter(s => s.id !== id));
+    const newSkills = skills.filter(s => s.id !== id);
+    setSkills(newSkills);
+    updateEntity({ ...entity, skills: newSkills });
+  };
+
+  const handleSavePersonality = () => {
+    updateEntity({ ...entity, personality });
+    setHasUnsavedChanges(false);
+  };
+
+  const levelUpCost = entity.level * 50;
+  const canLevelUp = dataFragments >= levelUpCost;
+
+  const handleLevelUp = async () => {
+    if (!canLevelUp || isUpgrading) return;
+    
+    setIsUpgrading(true);
+    spendDataFragments(levelUpCost);
+    
+    // Simulate upgrade time
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const newStats = {
+      processing: Math.min(100, entity.stats.processing + Math.floor(Math.random() * 5) + 2),
+      adaptability: Math.min(100, entity.stats.adaptability + Math.floor(Math.random() * 5) + 2),
+      creativity: Math.min(100, entity.stats.creativity + Math.floor(Math.random() * 5) + 2),
+      stability: Math.min(100, entity.stats.stability + Math.floor(Math.random() * 5) + 2),
+    };
+
+    updateEntity({
+      ...entity,
+      level: entity.level + 1,
+      stats: newStats
+    });
+    
+    setIsUpgrading(false);
   };
 
   return (
@@ -75,6 +136,22 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
             <MessageSquare className="w-5 h-5" />
             INITIATE SYNAPSE LINK
           </button>
+
+          <button 
+            onClick={handleLevelUp}
+            disabled={!canLevelUp || isUpgrading}
+            className="w-full flex flex-col items-center justify-center gap-1 py-3 rounded-xl bg-neon-fuchsia/10 border border-neon-fuchsia/50 text-neon-fuchsia font-mono transition-all hover:bg-neon-fuchsia/20 disabled:opacity-50 disabled:hover:bg-neon-fuchsia/10"
+          >
+            <div className="flex items-center gap-2">
+              {isUpgrading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUpCircle className="w-5 h-5" />}
+              {isUpgrading ? 'UPGRADING...' : 'LEVEL UP ENTITY'}
+            </div>
+            {!isUpgrading && (
+              <div className="text-xs flex items-center gap-1 text-neon-fuchsia/70">
+                Cost: <Database className="w-3 h-3" /> {levelUpCost} DF
+              </div>
+            )}
+          </button>
         </div>
 
         {/* Right Column: Stats & Data */}
@@ -86,13 +163,23 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
               {statConfig.map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
-                  <div key={idx}>
+                  <div key={idx} className="group">
                     <div className="flex justify-between items-end mb-2">
                       <div className="flex items-center gap-2 text-slate-300 font-mono text-sm">
                         <Icon className="w-4 h-4 opacity-70" />
                         {stat.label}
                       </div>
-                      <span className="font-mono text-white">{stat.value}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-white">{stat.value}</span>
+                        <button 
+                          onClick={() => handleEnhanceStat(stat.key as keyof AIEntity['stats'])}
+                          disabled={dataFragments < 20 || stat.value >= 100}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-mono bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-1 rounded flex items-center gap-1 disabled:opacity-50 disabled:hover:bg-white/5"
+                          title="Enhance (+5) Cost: 20 DF"
+                        >
+                          <Plus className="w-3 h-3" /> 20 DF
+                        </button>
+                      </div>
                     </div>
                     <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
                       <motion.div 
@@ -108,7 +195,17 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
             </div>
 
             {/* Personality Sliders */}
-            <h3 className="font-mono text-sm text-slate-400 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">Personality Matrix</h3>
+            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
+              <h3 className="font-mono text-sm text-slate-400 uppercase tracking-widest">Personality Matrix</h3>
+              {hasUnsavedChanges && (
+                <button 
+                  onClick={handleSavePersonality}
+                  className="text-neon-emerald hover:text-white flex items-center gap-1 text-xs font-mono transition-colors bg-neon-emerald/10 px-2 py-1 rounded"
+                >
+                  <Save className="w-3 h-3" /> Save Changes
+                </button>
+              )}
+            </div>
             <div className="space-y-6 mb-8">
               {[
                 { key: 'aggression', left: 'Defensive', right: 'Aggressive', color: 'accent-neon-fuchsia' },

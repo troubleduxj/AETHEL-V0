@@ -2,15 +2,25 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
 import { PageId } from '../types';
-import { mockRegions, mockEntities } from '../data/mockData';
 import { MapPin, AlertCircle, ShieldCheck, HelpCircle, X, Navigation, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
+
+const cities = [
+  { id: 'city-nexus-prime', name: 'Nexus Prime', status: 'Safe', coordinates: { x: 50, y: 50 }, activeEntities: ['1', '2'], type: 'Social / Trade Hub' },
+  { id: 'city-silicon-wastes', name: 'The Silicon Wastes', status: 'Unknown', coordinates: { x: 20, y: 30 }, activeEntities: [], type: 'Exploration / Scavenging' },
+  { id: 'city-sector-7g', name: 'Sector 7G', status: 'Contested', coordinates: { x: 80, y: 20 }, activeEntities: ['3'], type: 'Combat / High Risk' },
+  { id: 'city-neural-archives', name: 'The Neural Archives', status: 'Safe', coordinates: { x: 30, y: 70 }, activeEntities: ['4'], type: 'Lore / Experimental' },
+  { id: 'city-aegis-bulwark', name: 'Aegis Bulwark', status: 'Safe', coordinates: { x: 70, y: 80 }, activeEntities: [], type: 'Defense / Faction Hub' },
+  { id: 'city-synth-sea', name: 'The Synth-Sea', status: 'Unknown', coordinates: { x: 85, y: 55 }, activeEntities: ['5'], type: 'Exploration / Anomalies' }
+];
 
 interface WorldMapProps {
   onNavigate: (page: PageId, entityId?: string) => void;
 }
 
 export function WorldMap({ onNavigate }: WorldMapProps) {
-  const [selectedRegion, setSelectedRegion] = useState<typeof mockRegions[0] | null>(null);
+  const { roster } = useAppContext();
+  const [selectedRegion, setSelectedRegion] = useState<typeof cities[0] | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -94,7 +104,7 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
           />
 
           {/* Map Regions & Nodes */}
-          {mockRegions.map(region => (
+          {cities.map(region => (
             <motion.div
               key={region.id}
               className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
@@ -117,14 +127,14 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
             {/* Region Label */}
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap text-center pointer-events-none">
               <div className="font-mono text-xs text-white font-bold drop-shadow-md">{region.name}</div>
-              <div className="font-mono text-[10px] text-neon-cyan">{region.activeEntities.length} Entities</div>
+              <div className="font-mono text-[10px] text-neon-cyan">{region.type}</div>
             </div>
 
             {/* Active Entity Avatars */}
             {region.activeEntities.length > 0 && (
               <div className="absolute -top-4 -right-4 flex -space-x-2">
                 {region.activeEntities.map(entId => {
-                  const ent = mockEntities.find(e => e.id === entId);
+                  const ent = roster.find(e => e.id === entId);
                   if (!ent) return null;
                   return (
                     <div key={entId} className="w-6 h-6 rounded-full border border-neon-cyan overflow-hidden bg-black">
@@ -167,7 +177,7 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
                     {selectedRegion.activeEntities.length > 0 ? (
                       <div className="space-y-2">
                         {selectedRegion.activeEntities.map(entId => {
-                          const ent = mockEntities.find(e => e.id === entId);
+                          const ent = roster.find(e => e.id === entId);
                           if (!ent) return null;
                           return (
                             <div 
@@ -200,6 +210,13 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
                       ENGAGE COMBAT
                     </button>
                   )}
+                  
+                  <button 
+                    onClick={() => onNavigate(selectedRegion.id as PageId)}
+                    className="w-full py-2 rounded bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan font-mono text-sm hover:bg-neon-cyan hover:text-slate-900 transition-colors"
+                  >
+                    ENTER REGION
+                  </button>
                 </div>
               </GlassPanel>
             </motion.div>
