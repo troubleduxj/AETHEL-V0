@@ -58,6 +58,7 @@ export interface AIEntity {
   skills: Skill[];
   memories: Memory[];
   imageUrl: string;
+  themeColor?: string;
   neuralConfig?: NeuralConfig;
 }
 

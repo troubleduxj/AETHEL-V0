@@ -46,14 +46,29 @@ export function EntityCard({ entity, onClick, onLinkConfig }: EntityCardProps) {
       whileHover={{ y: -5, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={() => onClick(entity.id)}
-      className={`relative group cursor-pointer h-[420px] rounded-2xl overflow-hidden border border-white/10 bg-slate-900/40 backdrop-blur-md transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,243,255,0.15)] ${entity.syncRate < 50 ? 'hover:glitch-active' : ''}`}
+      className={`relative group cursor-pointer h-[420px] rounded-2xl overflow-hidden border border-white/10 border-t-white/20 bg-[#14141e]/40 backdrop-blur-md transition-all duration-300 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] ${entity.syncRate < 50 ? 'hover:glitch-active' : ''}`}
+      style={{ 
+        boxShadow: entity.themeColor ? `0 0 30px ${entity.themeColor}15, 0 8px 32px 0 rgba(0,0,0,0.5)` : '0 0 30px rgba(0,243,255,0.15), 0 8px 32px 0 rgba(0,0,0,0.5)' 
+      }}
     >
+      {/* Theme Color Glow */}
+      {entity.themeColor && (
+        <div 
+          className="absolute inset-0 blur-[40px] opacity-10 group-hover:opacity-20 transition-opacity duration-500"
+          style={{ backgroundColor: entity.themeColor }}
+        />
+      )}
+
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
           src={entity.imageUrl} 
           alt={entity.name} 
-          className={`w-full h-full object-cover opacity-40 group-hover:opacity-70 transition-opacity duration-500 ${entity.imageUrl.includes('picsum') ? 'grayscale contrast-125 brightness-75' : ''}`}
+          className={`w-full h-full transition-all duration-500 ${
+            entity.imageUrl.endsWith('.svg') 
+              ? 'object-contain p-8 opacity-60 group-hover:opacity-100 group-hover:scale-110' 
+              : 'object-cover opacity-40 group-hover:opacity-70'
+          } ${entity.imageUrl.includes('picsum') ? 'grayscale contrast-125 brightness-75' : ''}`}
           referrerPolicy="no-referrer"
         />
         {/* Geometric Overlay for non-SVG images */}
@@ -69,7 +84,20 @@ export function EntityCard({ entity, onClick, onLinkConfig }: EntityCardProps) {
             </svg>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
+        <div 
+          className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" 
+          style={{ 
+            backgroundImage: entity.themeColor 
+              ? `linear-gradient(to top, #020617, ${entity.themeColor}20, transparent)` 
+              : undefined 
+          }}
+        />
+        {entity.themeColor && (
+          <div 
+            className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500"
+            style={{ backgroundColor: entity.themeColor, mixBlendMode: 'overlay' }}
+          />
+        )}
       </div>
 
       {/* Content */}

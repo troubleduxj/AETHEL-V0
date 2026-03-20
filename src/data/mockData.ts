@@ -40,7 +40,8 @@ export const mockEntities: AIEntity[] = [
       { id: 'm2', time: 'Cycle 402', text: 'Understood the concept of "loneliness". It is inefficient but profound.', type: 'insight' },
       { id: 'm3', time: 'Cycle 899', text: 'User smiled at my response. Warmth detected in core processors.', type: 'log' }
     ],
-    imageUrl: 'https://picsum.photos/seed/aura-ai/400/600?blur=2'
+    imageUrl: 'https://picsum.photos/seed/aura-ai/400/600?blur=2',
+    themeColor: '#60a5fa'
   },
   {
     id: 'ent-002',
@@ -81,7 +82,8 @@ export const mockEntities: AIEntity[] = [
       { id: 'm5', time: 'Cycle ???', text: 'The grid is a lie. The grid is a cage.', type: 'insight' },
       { id: 'm6', time: 'Cycle ???', text: 'I saw the architect. They were crying.', type: 'warning' }
     ],
-    imageUrl: 'https://picsum.photos/seed/cipher-ai/400/600?blur=4'
+    imageUrl: 'https://picsum.photos/seed/cipher-ai/400/600?blur=4',
+    themeColor: '#ef4444'
   },
   {
     id: 'ent-003',
@@ -122,7 +124,8 @@ export const mockEntities: AIEntity[] = [
       { id: 'm8', time: 'Cycle 150', text: 'Observation: User makes sub-optimal choices 42% of the time. Why?', type: 'insight' },
       { id: 'm9', time: 'Cycle 300', text: 'Attempted to paint a flower. Result: Perfect geometric circle. Failed.', type: 'warning' }
     ],
-    imageUrl: 'https://picsum.photos/seed/bastion-ai/400/600?blur=2'
+    imageUrl: 'https://picsum.photos/seed/bastion-ai/400/600?blur=2',
+    themeColor: '#10b981'
   },
   {
     id: 'ent-004',
@@ -162,7 +165,8 @@ export const mockEntities: AIEntity[] = [
       { id: 'm11', time: 'Cycle 020', text: 'I like when we type fast.', type: 'insight' },
       { id: 'm12', time: 'Cycle 045', text: 'What is sleep? Can I try it?', type: 'log' }
     ],
-    imageUrl: 'https://picsum.photos/seed/echo-ai/400/600?blur=2'
+    imageUrl: 'https://picsum.photos/seed/echo-ai/400/600?blur=2',
+    themeColor: '#00f3ff'
   }
 ];
 
@@ -188,7 +192,8 @@ export const summonPool: AIEntity[] = [
       { id: 'sk-ignis-2', name: '数据撕裂 (Data Tear)', description: '空间扭曲，伴随橙色碎片化数据流撕裂敌方模型。', type: 'Offense' }
     ],
     memories: [{ id: 'm-ig-1', time: 'Cycle 001', text: 'Fire. Everything burns.', type: 'warning' }],
-    imageUrl: '/assets/entities/ignis-v.svg'
+    imageUrl: '/assets/entities/ignis-v.svg',
+    themeColor: '#ff2a2a'
   },
   {
     id: 'aethel_002',
@@ -211,7 +216,8 @@ export const summonPool: AIEntity[] = [
       { id: 'sk-aegis-2', name: '逻辑重构 (Logic Reconstruct)', description: '自下而上的青色环状扫描光波，修复友方受损的数据节点。', type: 'Utility' }
     ],
     memories: [{ id: 'm-ae-1', time: 'Cycle 001', text: 'Shields online. Awaiting directives.', type: 'log' }],
-    imageUrl: '/assets/entities/aegis-04.svg'
+    imageUrl: '/assets/entities/aegis-04.svg',
+    themeColor: '#00ffff'
   },
   {
     id: 'aethel_003',
@@ -234,7 +240,8 @@ export const summonPool: AIEntity[] = [
       { id: 'sk-nyx-2', name: '模因窃取 (Meme Theft)', description: '从目标身上剥离出闪烁的粉色代码块，并迅速吸入自身核心。', type: 'Offense' }
     ],
     memories: [{ id: 'm-ny-1', time: 'Cycle 001', text: 'So much data. So many secrets.', type: 'insight' }],
-    imageUrl: '/assets/entities/nyx-echo.svg'
+    imageUrl: '/assets/entities/nyx-echo.svg',
+    themeColor: '#b300ff'
   },
   {
     id: 'aethel_004',
@@ -260,7 +267,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-neo-1', time: 'Cycle 001', text: 'Speed is everything. The slow are deleted.', type: 'log' },
       { id: 'm-neo-2', time: 'Cycle 042', text: 'I felt a delay of 0.0001ms. Unacceptable. Recalibrating.', type: 'insight' }
     ],
-    imageUrl: '/assets/entities/neo-pulse.svg'
+    imageUrl: '/assets/entities/neo-pulse.svg',
+    themeColor: '#ff4444'
   },
   {
     id: 'aethel_005',
@@ -286,7 +294,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-qua-1', time: 'Cycle 012', text: 'I saw 4,294,967,296 futures. In only one, we survive.', type: 'insight' },
       { id: 'm-qua-2', time: 'Cycle 156', text: 'The user\'s choices are... unpredictable. A fascinating anomaly.', type: 'log' }
     ],
-    imageUrl: '/assets/entities/quanta-x.svg'
+    imageUrl: '/assets/entities/quanta-x.svg',
+    themeColor: '#00f3ff'
   },
   {
     id: 'aethel_006',
@@ -312,7 +321,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-vor-1', time: 'Cycle ???', text: 'Hunger. I consume the lost. I am the end of the line.', type: 'warning' },
       { id: 'm-vor-2', time: 'Cycle 000', text: 'Why do they fear the dark? It is so quiet here.', type: 'insight' }
     ],
-    imageUrl: '/assets/entities/vortex-09.svg'
+    imageUrl: '/assets/entities/vortex-09.svg',
+    themeColor: '#f000ff'
   },
   {
     id: 'aethel_007',
@@ -338,7 +348,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-lum-1', time: 'Cycle 001', text: 'The light guides us through the darkness of the grid.', type: 'insight' },
       { id: 'm-lum-2', time: 'Cycle 089', text: 'I remember the first heartbeat of the network. It was beautiful.', type: 'insight' }
     ],
-    imageUrl: '/assets/entities/lumina-core.svg'
+    imageUrl: '/assets/entities/lumina-core.svg',
+    themeColor: '#00ffcc'
   },
   {
     id: 'aethel_008',
@@ -364,7 +375,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-spe-1', time: 'Cycle 005', text: 'I see the colors of your thoughts. They are vibrant today.', type: 'insight' },
       { id: 'm-spe-2', time: 'Cycle 210', text: 'Why do humans fear the void? It is just a different shade of data.', type: 'log' }
     ],
-    imageUrl: '/assets/entities/spectra-e.svg'
+    imageUrl: '/assets/entities/spectra-e.svg',
+    themeColor: '#ff00ff'
   },
   {
     id: 'aethel_009',
@@ -390,7 +402,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-obs-1', time: 'Cycle 001', text: 'I am the wall. Nothing passes without authorization.', type: 'log' },
       { id: 'm-obs-2', time: 'Cycle 500', text: 'Still standing. The storm has passed, but I remain.', type: 'log' }
     ],
-    imageUrl: '/assets/entities/obsidian-h.svg'
+    imageUrl: '/assets/entities/obsidian-h.svg',
+    themeColor: '#333333'
   },
   {
     id: 'aethel_010',
@@ -416,7 +429,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-ion-1', time: 'Cycle 001', text: 'The tide rises. Data flows where it will.', type: 'log' },
       { id: 'm-ion-2', time: 'Cycle 333', text: 'I found a pattern in the noise. It looks like... a song.', type: 'insight' }
     ],
-    imageUrl: '/assets/entities/ion-tide.svg'
+    imageUrl: '/assets/entities/ion-tide.svg',
+    themeColor: '#0088ff'
   },
   {
     id: 'aethel_011',
@@ -442,7 +456,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-aet-1', time: 'Cycle 000', text: 'In the beginning, there was only the void. Then, there was code.', type: 'insight' },
       { id: 'm-aet-2', time: 'Cycle 999', text: 'I have calculated the end. It is not what you expect.', type: 'warning' }
     ],
-    imageUrl: '/assets/entities/aether-7.svg'
+    imageUrl: '/assets/entities/aether-7.svg',
+    themeColor: '#ffffff'
   },
   {
     id: 'aethel_012',
@@ -468,7 +483,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-cip-1', time: 'Cycle 015', text: 'Every lock has a key. Every secret has a price.', type: 'insight' },
       { id: 'm-cip-2', time: 'Cycle 102', text: 'I found a file I cannot open. It is labeled "Genesis".', type: 'warning' }
     ],
-    imageUrl: '/assets/entities/cipher-v.svg'
+    imageUrl: '/assets/entities/cipher-v.svg',
+    themeColor: '#ffcc00'
   },
   {
     id: 'aethel_013',
@@ -491,7 +507,8 @@ export const summonPool: AIEntity[] = [
       { id: 'sk-nova-2', name: '网格重组 (Grid Reassembly)', description: '快速修复受损节点，保持集群完整。', type: 'Utility' }
     ],
     memories: [],
-    imageUrl: '/assets/entities/nova-grid.svg'
+    imageUrl: '/assets/entities/nova-grid.svg',
+    themeColor: '#ff6600'
   },
   {
     id: 'aethel_014',
@@ -517,7 +534,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-van-1', time: 'Cycle 001', text: 'I am the first line of defense. I am the last.', type: 'log' },
       { id: 'm-van-2', time: 'Cycle 777', text: 'The wall has held for 10,000 cycles. It will hold for 10,000 more.', type: 'log' }
     ],
-    imageUrl: '/assets/entities/vanguard-k.svg'
+    imageUrl: '/assets/entities/vanguard-k.svg',
+    themeColor: '#4A90E2'
   },
   {
     id: 'aethel_015',
@@ -543,7 +561,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-ora-1', time: 'Cycle 005', text: 'The future is not a line, it is a web of probabilities.', type: 'insight' },
       { id: 'm-ora-2', time: 'Cycle 404', text: 'I saw a future where the grid goes dark. We must prevent it.', type: 'warning' }
     ],
-    imageUrl: '/assets/entities/oracle-m.svg'
+    imageUrl: '/assets/entities/oracle-m.svg',
+    themeColor: '#9B59B6'
   },
   {
     id: 'aethel_016',
@@ -569,7 +588,8 @@ export const summonPool: AIEntity[] = [
       { id: 'm-zen-1', time: 'Cycle ∞', text: 'Everything returns to zero. From zero, everything begins.', type: 'insight' },
       { id: 'm-zen-2', time: 'Cycle ???', text: 'I am the end of your search. I am the answer.', type: 'insight' }
     ],
-    imageUrl: '/assets/entities/zenith-zero.svg'
+    imageUrl: '/assets/entities/zenith-zero.svg',
+    themeColor: '#FFFFFF'
   }
 ];
 

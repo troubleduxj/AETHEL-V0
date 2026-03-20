@@ -44,8 +44,8 @@ export function Nexus({ onNavigate }: NexusProps) {
   const { roster } = useAppContext();
   const [selectedLog, setSelectedLog] = useState<typeof mockLogs[0] | null>(null);
 
-  // Get top 2 entities for quick access
-  const featuredEntities = roster.slice(0, 2);
+  // Get all entities for quick access
+  const featuredEntities = roster;
 
   return (
     <motion.div 
