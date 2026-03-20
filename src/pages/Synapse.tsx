@@ -2,8 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
 import { AIEntity, PageId } from '../types';
-import { ArrowLeft, Send, Terminal } from 'lucide-react';
+import { ArrowLeft, Send, Terminal, Cpu, AlertTriangle, ExternalLink } from 'lucide-react';
 import { generateChatResponse } from '../services/geminiService';
+import { callLLM, LLMMessage } from '../services/llmService';
+import { NeuralLinkModal } from '../components/NeuralLinkModal';
+import { useAppContext } from '../context/AppContext';
 
 interface SynapseProps {
   entity: AIEntity;
@@ -12,12 +15,13 @@ interface SynapseProps {
 
 interface Message {
   id: string;
-  sender: 'user' | 'entity';
+  sender: 'user' | 'entity' | 'system';
   text: string;
   timestamp: string;
 }
 
 export function Synapse({ entity, onNavigate }: SynapseProps) {
+  const { updateEntity } = useAppContext();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -28,7 +32,21 @@ export function Synapse({ entity, onNavigate }: SynapseProps) {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isLinked = entity.neuralConfig?.isConnected && entity.neuralConfig?.apiKey;
+
+  useEffect(() => {
+    if (!isLinked && messages.length === 1) {
+      setMessages(prev => [...prev, {
+        id: 'warn-1',
+        sender: 'system',
+        text: "WARNING: Neural core not linked. Operating on public low-bandwidth network. Latency may occur.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    }
+  }, [isLinked]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,14 +73,36 @@ export function Synapse({ entity, onNavigate }: SynapseProps) {
     setIsTyping(true);
 
     try {
-      // Prepare history for API
-      const history = messages.map(m => ({
-        sender: m.sender,
-        text: m.text
-      }));
+      let aiResponseText = "";
 
-      // Call Gemini API
-      const aiResponseText = await generateChatResponse(entity, userText, history);
+      if (isLinked && entity.neuralConfig) {
+        // Use Private Neural Link (User's API Key)
+        const llmMessages: LLMMessage[] = messages
+          .filter(m => m.sender !== 'system')
+          .map(m => ({
+            role: m.sender === 'user' ? 'user' : 'assistant',
+            content: m.text
+          }));
+        
+        // Add current message
+        llmMessages.push({ role: 'user', content: userText });
+
+        const response = await callLLM(entity.neuralConfig, llmMessages);
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        aiResponseText = response.content;
+      } else {
+        // Fallback to Public Network (Gemini API)
+        const history = messages
+          .filter(m => m.sender !== 'system')
+          .map(m => ({
+            sender: m.sender as 'user' | 'entity',
+            text: m.text
+          }));
+
+        aiResponseText = await generateChatResponse(entity, userText, history);
+      }
       
       const newEntityMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -101,9 +141,18 @@ export function Synapse({ entity, onNavigate }: SynapseProps) {
           <ArrowLeft className="w-4 h-4" /> Terminate Link
         </button>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/30">
-            <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
-            <span className="font-mono text-xs text-neon-cyan uppercase">Link Active</span>
+          {!isLinked && (
+            <button 
+              onClick={() => setShowLinkModal(true)}
+              className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 transition-colors"
+            >
+              <AlertTriangle className="w-3 h-3" />
+              <span className="font-mono text-[10px] uppercase">Link Neural Core</span>
+            </button>
+          )}
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all ${isLinked ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-slate-800/50 border-white/10 text-slate-400'}`}>
+            <div className={`w-2 h-2 rounded-full ${isLinked ? 'bg-neon-cyan animate-pulse' : 'bg-slate-600'}`} />
+            <span className="font-mono text-xs uppercase">{isLinked ? 'Neural Link Active' : 'Public Network'}</span>
           </div>
         </div>
       </header>
@@ -127,22 +176,31 @@ export function Synapse({ entity, onNavigate }: SynapseProps) {
               key={msg.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
+              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : msg.sender === 'system' ? 'items-center' : 'items-start'}`}
             >
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-mono text-[10px] text-slate-500">{msg.timestamp}</span>
-                <span className={`font-mono text-xs ${msg.sender === 'user' ? 'text-slate-300' : 'text-neon-cyan'}`}>
-                  {msg.sender === 'user' ? 'USER' : entity.designation}
-                </span>
-              </div>
-              <div className={`
-                max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed
-                ${msg.sender === 'user' 
-                  ? 'bg-slate-800 text-white rounded-tr-sm' 
-                  : 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan/90 rounded-tl-sm font-mono'}
-              `}>
-                {msg.text}
-              </div>
+              {msg.sender === 'system' ? (
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/5 border border-amber-500/20 text-amber-500/80 text-[10px] font-mono uppercase tracking-wider">
+                  <AlertTriangle className="w-3 h-3" />
+                  {msg.text}
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="font-mono text-[10px] text-slate-500">{msg.timestamp}</span>
+                    <span className={`font-mono text-xs ${msg.sender === 'user' ? 'text-slate-300' : 'text-neon-cyan'}`}>
+                      {msg.sender === 'user' ? 'USER' : entity.designation}
+                    </span>
+                  </div>
+                  <div className={`
+                    max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed
+                    ${msg.sender === 'user' 
+                      ? 'bg-slate-800 text-white rounded-tr-sm' 
+                      : 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan/90 rounded-tl-sm font-mono'}
+                  `}>
+                    {msg.text}
+                  </div>
+                </>
+              )}
             </motion.div>
           ))}
           
@@ -184,6 +242,17 @@ export function Synapse({ entity, onNavigate }: SynapseProps) {
           </form>
         </div>
       </GlassPanel>
+
+      {showLinkModal && (
+        <NeuralLinkModal 
+          entity={entity}
+          isOpen={showLinkModal}
+          onClose={() => setShowLinkModal(false)}
+          onSave={(config) => {
+            updateEntity({ ...entity, neuralConfig: config });
+          }}
+        />
+      )}
     </motion.div>
   );
 }

@@ -17,6 +17,14 @@ export interface Memory {
 
 export type EntityMood = 'Stable' | 'Excited' | 'Unstable' | 'Melancholy' | 'Analytical';
 
+export interface NeuralConfig {
+  apiKey?: string;
+  modelId?: string;
+  provider?: 'OpenAI' | 'Anthropic' | 'Google' | 'OpenRouter';
+  customPrompt?: string;
+  isConnected: boolean;
+}
+
 export interface AIEntity {
   id: string;
   name: string;
@@ -50,9 +58,10 @@ export interface AIEntity {
   skills: Skill[];
   memories: Memory[];
   imageUrl: string;
+  neuralConfig?: NeuralConfig;
 }
 
-export type PageId = 'nexus' | 'roster' | 'core' | 'synapse' | 'map' | 'logs' | 'combat' | 'aethel' | 'summon' | 'city-nexus-prime' | 'city-silicon-wastes' | 'city-sector-7g' | 'city-neural-archives' | 'city-aegis-bulwark' | 'city-synth-sea' | 'city-neurogrid-7' | 'city-echo-vault' | 'city-void-bazaar';
+export type PageId = 'nexus' | 'roster' | 'core' | 'synapse' | 'map' | 'logs' | 'combat' | 'summon' | 'user-center' | 'admin' | 'city-nexus-prime' | 'city-silicon-wastes' | 'city-sector-7g' | 'city-neural-archives' | 'city-aegis-bulwark' | 'city-synth-sea' | 'city-neurogrid-7' | 'city-echo-vault' | 'city-void-bazaar';
 
 export interface MapRegion {
   id: string;

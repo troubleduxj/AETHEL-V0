@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { AIEntity, EntityMood } from '../types';
-import { MapPin, Activity } from 'lucide-react';
+import { MapPin, Activity, Cpu } from 'lucide-react';
 import { RadarChart } from './RadarChart';
 
 interface EntityCardProps {
   entity: AIEntity;
   onClick: (id: string) => void;
+  onLinkConfig?: (entity: AIEntity) => void;
 }
 
 const rarityColors = {
@@ -32,8 +33,13 @@ const locationNames: Record<string, string> = {
   'city-void-node': 'Void Node',
 };
 
-export function EntityCard({ entity, onClick }: EntityCardProps) {
+export function EntityCard({ entity, onClick, onLinkConfig }: EntityCardProps) {
   const moodInfo = moodColors[entity.mood || 'Stable'];
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onLinkConfig) onLinkConfig(entity);
+  };
 
   return (
     <motion.div
@@ -90,6 +96,14 @@ export function EntityCard({ entity, onClick }: EntityCardProps) {
             <div className={`px-2 py-1 text-[10px] font-mono uppercase border rounded-full backdrop-blur-sm ${rarityColors[entity.rarity]}`}>
               {entity.rarity}
             </div>
+            {/* Neural Link Status Indicator */}
+            <button 
+              onClick={handleLinkClick}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[8px] font-mono transition-all hover:scale-110 ${entity.neuralConfig?.isConnected ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.3)]' : 'bg-slate-800/50 border-white/5 text-slate-500 hover:text-white hover:border-white/20'}`}
+            >
+              <Cpu className="w-2.5 h-2.5" />
+              {entity.neuralConfig?.isConnected ? 'LINKED' : 'OFFLINE'}
+            </button>
           </div>
         </div>
 

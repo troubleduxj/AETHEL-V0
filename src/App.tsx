@@ -9,11 +9,13 @@ import { Synapse } from './pages/Synapse';
 import { WorldMap } from './pages/WorldMap';
 import { BehaviorLogs } from './pages/BehaviorLogs';
 import { Combat } from './pages/Combat';
-import { AethelShowcase } from './pages/AethelShowcase';
 import { Summon } from './pages/Summon';
+import { Landing } from './pages/Landing';
+import { UserCenter } from './pages/UserCenter';
+import { Admin } from './pages/Admin';
 import { SpecOverlay } from './components/SpecOverlay';
 import { GlobalEntityTracker } from './components/GlobalEntityTracker';
-import { LayoutDashboard, Users, Info, Map, Activity, Swords, Sparkles, Database } from 'lucide-react';
+import { LayoutDashboard, Users, Info, Map, Activity, Swords, Sparkles, Database, UserCircle, ShieldAlert } from 'lucide-react';
 
 import CityMapNexusPrime from './pages/CityMapNexusPrime';
 import CityMapSiliconWastes from './pages/CityMapSiliconWastes';
@@ -26,7 +28,8 @@ import CityMapEchoVault from './pages/CityMapEchoVault';
 import CityMapVoidBazaar from './pages/CityMapVoidBazaar';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<PageId>('aethel');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentPage, setCurrentPage] = useState<PageId>('nexus');
   const [selectedEntityId, setSelectedEntityId] = useState<string | undefined>();
   const [showSpec, setShowSpec] = useState(false);
   const { roster, dataFragments } = useAppContext();
@@ -37,6 +40,10 @@ export default function App() {
   };
 
   const selectedEntity = selectedEntityId ? roster.find(e => e.id === selectedEntityId) : undefined;
+
+  if (!isLoggedIn) {
+    return <Landing onEnter={() => setIsLoggedIn(true)} />;
+  }
 
   // Spec Data based on current page
   const specData = {
@@ -82,17 +89,23 @@ export default function App() {
       components: 'Health Bar, Skill Button, Combat Log, Entity Sprite.',
       interaction: 'Select skills to engage in simulated combat.'
     },
-    aethel: {
-      name: 'Aethel Showcase',
-      structure: 'Showcase of the 3 new AI entities with Glassmorphism cards.',
-      components: 'AethelCard, RadarChart, 3D Tilt Effect.',
-      interaction: 'Hover over cards to see 3D tilt and skill tooltips.'
-    },
     summon: {
       name: 'Summoning Portal',
       structure: 'Gacha interface to acquire new AI entities.',
       components: 'Portal Animation, Summon Button, Entity Reveal.',
       interaction: 'Click Extract to spend Data Fragments and summon an entity.'
+    },
+    'user-center': {
+      name: 'User Command Center',
+      structure: 'Profile overview, daily check-in, and security settings.',
+      components: 'Profile Card, Check-in Button, Invite Section, Security Form.',
+      interaction: 'Click sync to get daily DF, copy invite code, or update passcode.'
+    },
+    admin: {
+      name: 'System Overseer (Admin)',
+      structure: 'Multi-tab control panel for system monitoring and management.',
+      components: 'Dashboard, User Table, NPC Config, System Params.',
+      interaction: 'Switch tabs to manage different aspects of the AETHEL network.'
     }
   };
 
@@ -112,22 +125,16 @@ export default function App() {
           
           <div className="hidden md:flex items-center gap-1">
             <button 
-              onClick={() => handleNavigate('aethel')}
-              className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'aethel' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+              onClick={() => handleNavigate('nexus')}
+              className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'nexus' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
             >
-              <Sparkles className="w-4 h-4" /> Showcase
+              <LayoutDashboard className="w-4 h-4" /> Nexus
             </button>
             <button 
               onClick={() => handleNavigate('summon')}
               className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'summon' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
             >
               <Database className="w-4 h-4" /> Summon
-            </button>
-            <button 
-              onClick={() => handleNavigate('nexus')}
-              className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'nexus' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
-            >
-              <LayoutDashboard className="w-4 h-4" /> Nexus
             </button>
             <button 
               onClick={() => handleNavigate('roster')}
@@ -146,6 +153,18 @@ export default function App() {
               className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'combat' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
             >
               <Swords className="w-4 h-4" /> Combat
+            </button>
+            <button 
+              onClick={() => handleNavigate('user-center')}
+              className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'user-center' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+            >
+              <UserCircle className="w-4 h-4" /> Profile
+            </button>
+            <button 
+              onClick={() => handleNavigate('admin')}
+              className={`px-4 py-2 rounded-lg font-mono text-sm transition-colors flex items-center gap-2 ${currentPage === 'admin' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+            >
+              <ShieldAlert className="w-4 h-4" /> Admin
             </button>
           </div>
         </div>
@@ -173,7 +192,6 @@ export default function App() {
       {/* Main Content Area */}
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 min-h-screen">
         <AnimatePresence mode="wait">
-          {currentPage === 'aethel' && <AethelShowcase key="aethel" onNavigate={handleNavigate} />}
           {currentPage === 'summon' && <Summon key="summon" onNavigate={handleNavigate} />}
           {currentPage === 'nexus' && <Nexus key="nexus" onNavigate={handleNavigate} />}
           {currentPage === 'roster' && <Roster key="roster" onNavigate={handleNavigate} />}
@@ -191,17 +209,19 @@ export default function App() {
           {currentPage === 'city-void-bazaar' && <CityMapVoidBazaar key="city-void-bazaar" onNavigate={handleNavigate} />}
           {currentPage === 'logs' && <BehaviorLogs key="logs" onNavigate={handleNavigate} />}
           {currentPage === 'combat' && <Combat key="combat" onNavigate={handleNavigate} />}
+          {currentPage === 'user-center' && <UserCenter key="user-center" onNavigate={handleNavigate} />}
+          {currentPage === 'admin' && <Admin key="admin" onNavigate={handleNavigate} />}
         </AnimatePresence>
       </main>
 
       {/* Mobile Bottom Nav (visible only on small screens) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-950/90 backdrop-blur-lg border-t border-white/10 z-40 flex items-center justify-around px-2">
         <button 
-          onClick={() => handleNavigate('aethel')}
-          className={`flex flex-col items-center gap-1 p-2 ${currentPage === 'aethel' ? 'text-neon-cyan' : 'text-slate-500'}`}
+          onClick={() => handleNavigate('nexus')}
+          className={`flex flex-col items-center gap-1 p-2 ${currentPage === 'nexus' ? 'text-neon-cyan' : 'text-slate-500'}`}
         >
-          <Sparkles className="w-5 h-5" />
-          <span className="text-[10px] font-mono uppercase">Showcase</span>
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="text-[10px] font-mono uppercase">Nexus</span>
         </button>
         <button 
           onClick={() => handleNavigate('summon')}
@@ -230,6 +250,20 @@ export default function App() {
         >
           <Swords className="w-5 h-5" />
           <span className="text-[10px] font-mono uppercase">Combat</span>
+        </button>
+        <button 
+          onClick={() => handleNavigate('user-center')}
+          className={`flex flex-col items-center gap-1 p-2 ${currentPage === 'user-center' ? 'text-neon-cyan' : 'text-slate-500'}`}
+        >
+          <UserCircle className="w-5 h-5" />
+          <span className="text-[10px] font-mono uppercase">Profile</span>
+        </button>
+        <button 
+          onClick={() => handleNavigate('admin')}
+          className={`flex flex-col items-center gap-1 p-2 ${currentPage === 'admin' ? 'text-neon-cyan' : 'text-slate-500'}`}
+        >
+          <ShieldAlert className="w-5 h-5" />
+          <span className="text-[10px] font-mono uppercase">Admin</span>
         </button>
       </div>
 

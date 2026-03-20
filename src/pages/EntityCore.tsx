@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
-import { AIEntity, PageId, EntityMood } from '../types';
-import { ArrowLeft, Cpu, Zap, Brain, Shield, MessageSquare, Plus, Trash2, Clock, AlertTriangle, Lightbulb, ArrowUpCircle, Save, Database, Loader2, MapPin, Activity, Compass, Target, Heart, Search } from 'lucide-react';
+import { AIEntity, PageId, EntityMood, NeuralConfig } from '../types';
+import { ArrowLeft, Cpu, Zap, Brain, Shield, MessageSquare, Plus, Trash2, Clock, AlertTriangle, Lightbulb, ArrowUpCircle, Save, Database, Loader2, MapPin, Activity, Compass, Target, Heart, Search, Link } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { RadarChart } from '../components/RadarChart';
+import { NeuralLinkModal } from '../components/NeuralLinkModal';
 
 const moodConfig: Record<EntityMood, { color: string; label: string; speed: number; amplitude: number; hex: string }> = {
   Stable: { color: 'text-emerald-400', hex: '#34d399', label: 'Stable Pulse', speed: 2, amplitude: 10 },
@@ -115,6 +116,7 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
   const [personality, setPersonality] = useState(entity.personality);
   const [skills, setSkills] = useState(entity.skills);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Sync state if entity changes externally
@@ -236,6 +238,13 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
                 <span className="px-2 py-1 text-[10px] font-mono uppercase border border-white/20 rounded-full bg-black/50 backdrop-blur-md text-slate-300">
                   Lvl {entity.level}
                 </span>
+                <button 
+                  onClick={() => setShowLinkModal(true)}
+                  className={`px-2 py-1 text-[10px] font-mono uppercase border rounded-full backdrop-blur-md flex items-center gap-1 transition-all ${entity.neuralConfig?.isConnected ? 'border-neon-cyan/50 bg-neon-cyan/10 text-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.2)]' : 'border-white/10 bg-black/50 text-slate-500 hover:text-white hover:border-white/30'}`}
+                >
+                  <Cpu className="w-3 h-3" />
+                  {entity.neuralConfig?.isConnected ? 'Neural Linked' : 'Link Neural Core'}
+                </button>
               </div>
 
               <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
@@ -422,6 +431,17 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
           </GlassPanel>
         </div>
       </div>
+
+      {showLinkModal && (
+        <NeuralLinkModal 
+          entity={entity}
+          isOpen={showLinkModal}
+          onClose={() => setShowLinkModal(false)}
+          onSave={(config) => {
+            updateEntity({ ...entity, neuralConfig: config });
+          }}
+        />
+      )}
     </motion.div>
   );
 }

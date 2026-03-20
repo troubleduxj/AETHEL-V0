@@ -4,14 +4,16 @@ import { useAppContext } from '../context/AppContext';
 import { summonPool } from '../data/mockData';
 import { AethelCard } from '../components/AethelCard';
 import { EntityCard } from '../components/EntityCard';
-import { Sparkles, Database, Loader2 } from 'lucide-react';
+import { NeuralLinkModal } from '../components/NeuralLinkModal';
+import { Sparkles, Database, Loader2, Cpu } from 'lucide-react';
 import { AIEntity, PageId } from '../types';
 import { entities } from '../data';
 
 export function Summon({ onNavigate }: { onNavigate: (page: PageId, entityId?: string) => void }) {
-  const { dataFragments, spendDataFragments, addEntityToRoster } = useAppContext();
+  const { dataFragments, spendDataFragments, addEntityToRoster, updateEntity } = useAppContext();
   const [isSummoning, setIsSummoning] = useState(false);
   const [summonedEntity, setSummonedEntity] = useState<AIEntity | null>(null);
+  const [showLinkModal, setShowLinkModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const SUMMON_COST = 100;
@@ -169,12 +171,24 @@ export function Summon({ onNavigate }: { onNavigate: (page: PageId, entityId?: s
                 </h2>
               </div>
               
-              <EntityCard entity={summonedEntity} onClick={() => {}} />
+              <EntityCard 
+                entity={summonedEntity} 
+                onClick={() => {}} 
+                onLinkConfig={() => setShowLinkModal(true)}
+              />
               
-              <div className="mt-8 text-center">
+              <div className="mt-8 flex flex-col items-center gap-4">
+                <button 
+                  onClick={() => setShowLinkModal(true)}
+                  className="flex items-center gap-2 px-6 py-2 rounded-xl bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan font-mono text-xs hover:bg-neon-cyan/30 transition-all animate-bounce"
+                >
+                  <Cpu className="w-4 h-4" />
+                  INITIALIZE NEURAL LINK
+                </button>
+
                 <button 
                   onClick={() => setSummonedEntity(null)}
-                  className="text-slate-400 hover:text-white font-mono text-sm uppercase tracking-widest transition-colors border-b border-transparent hover:border-white pb-1"
+                  className="text-slate-400 hover:text-white font-mono text-[10px] uppercase tracking-widest transition-colors border-b border-transparent hover:border-white pb-1"
                 >
                   Acknowledge & Continue
                 </button>
@@ -183,6 +197,19 @@ export function Summon({ onNavigate }: { onNavigate: (page: PageId, entityId?: s
           </motion.div>
         )}
       </AnimatePresence>
+
+      {summonedEntity && showLinkModal && (
+        <NeuralLinkModal 
+          entity={summonedEntity}
+          isOpen={showLinkModal}
+          onClose={() => setShowLinkModal(false)}
+          onSave={(config) => {
+            const updated = { ...summonedEntity, neuralConfig: config };
+            updateEntity(updated);
+            setSummonedEntity(updated);
+          }}
+        />
+      )}
     </div>
   );
 }

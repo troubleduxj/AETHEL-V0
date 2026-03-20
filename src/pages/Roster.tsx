@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { EntityCard } from '../components/EntityCard';
+import { NeuralLinkModal } from '../components/NeuralLinkModal';
 import { useAppContext } from '../context/AppContext';
-import { PageId } from '../types';
+import { AIEntity, PageId } from '../types';
 import { Filter } from 'lucide-react';
 
 interface RosterProps {
@@ -10,7 +11,8 @@ interface RosterProps {
 }
 
 export function Roster({ onNavigate }: RosterProps) {
-  const { roster } = useAppContext();
+  const { roster, updateEntity } = useAppContext();
+  const [selectedForLink, setSelectedForLink] = useState<AIEntity | null>(null);
 
   return (
     <motion.div 
@@ -49,10 +51,22 @@ export function Roster({ onNavigate }: RosterProps) {
             <EntityCard 
               entity={entity} 
               onClick={(id) => onNavigate('core', id)} 
+              onLinkConfig={(ent) => setSelectedForLink(ent)}
             />
           </motion.div>
         ))}
       </div>
+
+      {selectedForLink && (
+        <NeuralLinkModal 
+          entity={selectedForLink}
+          isOpen={!!selectedForLink}
+          onClose={() => setSelectedForLink(null)}
+          onSave={(config) => {
+            updateEntity({ ...selectedForLink, neuralConfig: config });
+          }}
+        />
+      )}
     </motion.div>
   );
 }
