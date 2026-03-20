@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
-import { PageId, AIEntity } from '../types';
+import { PageId, AIEntity, EntityMood } from '../types';
 import { 
   Zap, Cpu, Brain, ShoppingBag, Target, AlertTriangle, 
   FlaskConical, X, Navigation, ZoomIn, ZoomOut, Maximize,
@@ -45,6 +45,62 @@ const LINKS = [
 interface WorldMapProps {
   onNavigate: (page: PageId, entityId?: string) => void;
   selectedEntityId?: string;
+}
+
+function GlobalEntityTracker({ entities }: { entities: AIEntity[] }) {
+  const criticalEntities = entities.filter(e => e.syncRate < 60 || e.status !== 'Idle');
+  
+  return (
+    <div className="w-full bg-black/60 border-b border-white/5 backdrop-blur-md h-8 flex items-center overflow-hidden relative z-30">
+      <div className="flex items-center gap-4 px-4 border-r border-white/10 h-full bg-black/40">
+        <div className="flex items-center gap-2">
+          <Activity className="w-3 h-3 text-cyan-400 animate-pulse" />
+          <span className="text-[10px] font-mono text-cyan-400 font-bold tracking-tighter">LIVE MONITOR</span>
+        </div>
+        <div className="h-3 w-px bg-white/10" />
+        <span className="text-[9px] font-mono text-slate-500 uppercase">Alerts: {criticalEntities.length}</span>
+      </div>
+      
+      <div className="flex-1 overflow-hidden relative h-full">
+        <motion.div 
+          className="flex items-center gap-12 whitespace-nowrap h-full absolute left-0"
+          animate={{ x: [0, -2000] }}
+          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+        >
+          {criticalEntities.length > 0 ? (
+            criticalEntities.map((ent, i) => (
+              <div key={ent.id} className="flex items-center gap-3 text-[10px] font-mono">
+                <span className="text-slate-500">[{i + 1}]</span>
+                <span className="text-white font-bold">{ent.name}</span>
+                <span className="text-slate-400">is</span>
+                <span className={`px-1.5 py-0.5 rounded ${ent.status === 'Combat' ? 'bg-red-500/20 text-red-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
+                  {ent.status.toUpperCase()}
+                </span>
+                <span className="text-slate-400">at</span>
+                <span className="text-slate-200">{NODES.find(n => n.id === ent.location)?.name || 'Unknown Location'}</span>
+                <span className="text-slate-500">|</span>
+                <span className="text-slate-400">Sync:</span>
+                <span className={ent.syncRate < 50 ? 'text-red-500 font-bold animate-pulse' : 'text-emerald-400'}>
+                  {ent.syncRate}%
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="flex items-center gap-3 text-[10px] font-mono text-slate-500 italic">
+              All systems stable. No critical neural fluctuations detected across the grid.
+            </div>
+          )}
+        </motion.div>
+      </div>
+      
+      <div className="px-4 border-l border-white/10 h-full flex items-center gap-4 bg-black/40">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[9px] font-mono text-slate-400">SYS_HEALTH: 98.4%</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function WorldMap({ onNavigate, selectedEntityId }: WorldMapProps) {
@@ -144,7 +200,9 @@ export function WorldMap({ onNavigate, selectedEntityId }: WorldMapProps) {
       exit={{ opacity: 0, y: -20 }}
       className="max-w-7xl mx-auto h-[calc(100vh-120px)] flex flex-col"
     >
-      <header className="mb-6 flex justify-between items-end">
+      <GlobalEntityTracker entities={roster} />
+      
+      <header className="mt-6 mb-6 flex justify-between items-end">
         <div>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-white tracking-tighter mb-1">
             NETWORK <span className="text-cyan-400 font-light italic">TOPOLOGY</span>
@@ -370,15 +428,32 @@ export function WorldMap({ onNavigate, selectedEntityId }: WorldMapProps) {
                   {nodePresence[node.id]?.map((ent, idx) => {
                     const isSelected = ent.id === selectedEntityId;
                     const angle = (idx / nodePresence[node.id].length) * Math.PI * 2;
-                    const radius = isSelected ? 40 : 30;
+                    const radius = isSelected ? 45 : 35;
                     const x = Math.cos(angle) * radius;
                     const y = Math.sin(angle) * radius;
+
+                    // Mood configuration for pulse rings
+                    const moodPulseColors: Record<EntityMood, string> = {
+                      Stable: 'border-emerald-400 shadow-emerald-400/50',
+                      Excited: 'border-fuchsia-400 shadow-fuchsia-400/50',
+                      Unstable: 'border-red-500 shadow-red-500/50',
+                      Melancholy: 'border-blue-500 shadow-blue-500/50',
+                      Analytical: 'border-amber-400 shadow-amber-400/50',
+                    };
+
+                    const moodPulseSpeed: Record<EntityMood, number> = {
+                      Stable: 3,
+                      Excited: 1,
+                      Unstable: 0.5,
+                      Melancholy: 5,
+                      Analytical: 2,
+                    };
 
                     return (
                       <motion.div
                         key={ent.id}
                         initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: isSelected ? 1 : 0.6, scale: 1 }}
+                        animate={{ opacity: isSelected ? 1 : 0.7, scale: 1 }}
                         className="absolute left-1/2 top-1/2 pointer-events-auto"
                         style={{ x, y, marginLeft: -12, marginTop: -12 }}
                         onClick={(e) => {
@@ -386,21 +461,56 @@ export function WorldMap({ onNavigate, selectedEntityId }: WorldMapProps) {
                           onNavigate('core', ent.id);
                         }}
                       >
-                        {/* Projection Ring */}
+                        {/* Biometric Pulse Rings (Layered) */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <motion.div
+                            className={`absolute w-10 h-10 rounded-full border-2 opacity-40 blur-[1px] ${moodPulseColors[ent.mood]}`}
+                            animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0.1, 0.4] }}
+                            transition={{ duration: moodPulseSpeed[ent.mood], repeat: Infinity, ease: "easeInOut" }}
+                          />
+                          <motion.div
+                            className={`absolute w-8 h-8 rounded-full border opacity-60 blur-[2px] ${moodPulseColors[ent.mood]}`}
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.2, 0.6] }}
+                            transition={{ duration: moodPulseSpeed[ent.mood] * 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                          />
+                        </div>
+
+                        {/* Status Text Bubble */}
                         <motion.div
-                          className={`absolute -inset-1 rounded-full border-2 blur-[2px] 
-                            ${ent.syncRate < 50 ? 'border-red-500' : isSelected ? 'border-cyan-400' : 'border-white/30'}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[7px] font-mono font-bold border backdrop-blur-md whitespace-nowrap z-20
+                            ${ent.mood === 'Unstable' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'bg-black/60 border-white/20 text-slate-300'}
                           `}
-                          animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-                          transition={{ 
-                            rotate: { duration: 10, repeat: Infinity, ease: "linear" },
-                            scale: { duration: 2, repeat: Infinity }
-                          }}
-                        />
+                        >
+                          {ent.mood.toUpperCase()}
+                        </motion.div>
+
+                        {/* Particle Animation (Simplified with motion) */}
+                        <div className="absolute inset-0 pointer-events-none">
+                          {[...Array(3)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className={`absolute w-1 h-1 rounded-full ${moodPulseColors[ent.mood].split(' ')[0].replace('border-', 'bg-')}`}
+                              animate={{ 
+                                x: [0, (Math.random() - 0.5) * 40],
+                                y: [0, (Math.random() - 0.5) * 40],
+                                opacity: [0, 1, 0],
+                                scale: [0, 1, 0]
+                              }}
+                              transition={{ 
+                                duration: 2 + Math.random(), 
+                                repeat: Infinity, 
+                                delay: i * 0.5 
+                              }}
+                            />
+                          ))}
+                        </div>
                         
                         {/* Avatar Icon */}
-                        <div className={`w-6 h-6 rounded-full overflow-hidden border shadow-lg relative z-10
-                          ${isSelected ? 'border-cyan-400 ring-4 ring-cyan-400/20' : 'border-white/20'}
+                        <div className={`w-7 h-7 rounded-full overflow-hidden border-2 shadow-lg relative z-10 transition-all
+                          ${isSelected ? 'border-cyan-400 ring-4 ring-cyan-400/30 scale-110' : 'border-white/20'}
+                          ${ent.syncRate < 50 ? 'border-red-500 animate-pulse' : ''}
                         `}>
                           <img 
                             src={ent.imageUrl} 
@@ -413,7 +523,7 @@ export function WorldMap({ onNavigate, selectedEntityId }: WorldMapProps) {
                         {/* Selected Indicator */}
                         {isSelected && (
                           <motion.div 
-                            className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap bg-cyan-500 text-black text-[8px] font-bold px-1 rounded"
+                            className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-cyan-500 text-black text-[7px] font-bold px-1 rounded shadow-lg z-20"
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
                           >

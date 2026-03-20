@@ -1,0 +1,42 @@
+<svg width="400" height="600" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="ionGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0088ff" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0088ff" stop-opacity="0" />
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Dynamic Ion Waves -->
+  <g transform="translate(200, 250)" filter="url(#glow)">
+    <path d="M -150 0 Q -75 -50 0 0 T 150 0" fill="none" stroke="#0088ff" stroke-width="2" opacity="0.6">
+      <animate attributeName="d" values="M -150 0 Q -75 -50 0 0 T 150 0; M -150 0 Q -75 50 0 0 T 150 0; M -150 0 Q -75 -50 0 0 T 150 0" dur="3s" repeatCount="indefinite" />
+    </path>
+    <path d="M -150 20 Q -75 -30 0 20 T 150 20" fill="none" stroke="#00ccff" stroke-width="1" opacity="0.4">
+      <animate attributeName="d" values="M -150 20 Q -75 -30 0 20 T 150 20; M -150 20 Q -75 70 0 20 T 150 20; M -150 20 Q -75 -30 0 20 T 150 20" dur="4s" repeatCount="indefinite" />
+    </path>
+    
+    <!-- Pulsing Core -->
+    <circle r="40" fill="url(#ionGrad)">
+      <animate attributeName="r" values="35;45;35" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.4;0.8;0.4" dur="2s" repeatCount="indefinite" />
+    </circle>
+  </g>
+  
+  <!-- Ion Particles -->
+  <g fill="#0088ff">
+    <circle r="1">
+      <animate attributeName="cx" values="100;300" dur="5s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="200;300" dur="5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="5s" repeatCount="indefinite" />
+    </circle>
+    <circle r="1.5">
+      <animate attributeName="cx" values="300;100" dur="7s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="400;200" dur="7s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="7s" repeatCount="indefinite" />
+    </circle>
+  </g>
+</svg>

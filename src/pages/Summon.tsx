@@ -75,7 +75,7 @@ export function Summon({ onNavigate }: { onNavigate: (page: PageId, entityId?: s
         </motion.div>
 
         {/* Summon Button & Cost */}
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 mb-20">
           <div className="flex items-center gap-2 bg-slate-900/80 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
             <Database className="w-4 h-4 text-neon-cyan" />
             <span className="font-mono text-white font-bold">{dataFragments}</span>
@@ -117,6 +117,35 @@ export function Summon({ onNavigate }: { onNavigate: (page: PageId, entityId?: s
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* Showcase Section */}
+        <div className="w-full max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10" />
+            <h2 className="font-display text-xl font-bold text-white tracking-widest uppercase flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-neon-cyan" />
+              Entity Showcase
+            </h2>
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/10" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {summonPool.map((entity) => (
+              <div key={entity.id} className="relative">
+                <EntityCard 
+                  entity={entity} 
+                  onClick={() => {}} 
+                />
+                {/* Rarity Overlay for Showcase */}
+                <div className="absolute top-2 left-2 z-30 pointer-events-none">
+                  <div className="bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white/70 uppercase">
+                    Pool Item
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

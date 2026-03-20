@@ -36,6 +36,12 @@ export interface AIEntity {
     creativity: number;
     stability: number;
   };
+  radarStats: {
+    offense: number;
+    defense: number;
+    loyalty: number;
+    curiosity: number;
+  };
   personality: {
     aggression: number; // 0-100 (Defensive vs Aggressive)
     logic: number;      // 0-100 (Emotional vs Logical)

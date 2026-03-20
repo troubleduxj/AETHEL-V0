@@ -1,0 +1,63 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="luminaGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00ff66" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#00f3ff" stop-opacity="0" />
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Halo Pulses -->
+  <g fill="none" stroke="#00ff66" stroke-width="2" opacity="0.5" filter="url(#glow)">
+    <circle cx="200" cy="200" r="60">
+      <animate attributeName="r" values="60;180" dur="3s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.5;0" dur="3s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="200" cy="200" r="60">
+      <animate attributeName="r" values="60;180" dur="3s" begin="1.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.5;0" dur="3s" begin="1.5s" repeatCount="indefinite" />
+    </circle>
+  </g>
+
+  <!-- Healing Particles -->
+  <g fill="#00f3ff" filter="url(#glow)">
+    <circle r="2">
+      <animate attributeName="cx" values="200;250;150;200" dur="5s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="200;50;350;200" dur="5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="5s" repeatCount="indefinite" />
+    </circle>
+    <circle r="1.5">
+      <animate attributeName="cx" values="200;100;300;200" dur="6s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="200;300;100;200" dur="6s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="6s" repeatCount="indefinite" />
+    </circle>
+    <circle r="2.5">
+      <animate attributeName="cx" values="200;350;50;200" dur="7s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="200;150;250;200" dur="7s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="7s" repeatCount="indefinite" />
+    </circle>
+  </g>
+  
+  <!-- Hexagonal Core -->
+  <g transform="translate(200, 200)" filter="url(#glow)">
+    <path d="M 0 -60 L 52 -30 L 52 30 L 0 60 L -52 30 L -52 -30 Z" fill="url(#luminaGrad)" stroke="#00ff66" stroke-width="2.5">
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" />
+      <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="3s" repeatCount="indefinite" />
+    </path>
+    <path d="M 0 -40 L 35 -20 L 35 20 L 0 40 L -35 20 L -35 -20 Z" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.6">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="12s" repeatCount="indefinite" />
+    </path>
+    
+    <!-- Rotating Hexagonal Rings -->
+    <path d="M 0 -85 L 74 -42 L 74 42 L 0 85 L -74 42 L -74 -42 Z" fill="none" stroke="#00f3ff" stroke-width="1" stroke-dasharray="15 25" opacity="0.5">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="18s" repeatCount="indefinite" />
+    </path>
+    <path d="M 0 -110 L 95 -55 L 95 55 L 0 110 L -95 55 L -95 -55 Z" fill="none" stroke="#00ff66" stroke-width="0.8" stroke-dasharray="25 45" opacity="0.3">
+      <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="22s" repeatCount="indefinite" />
+    </path>
+  </g>
+</svg>
+

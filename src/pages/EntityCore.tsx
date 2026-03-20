@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
 import { AIEntity, PageId, EntityMood } from '../types';
-import { ArrowLeft, Cpu, Zap, Brain, Shield, MessageSquare, Plus, Trash2, Clock, AlertTriangle, Lightbulb, ArrowUpCircle, Save, Database, Loader2, MapPin, Activity } from 'lucide-react';
+import { ArrowLeft, Cpu, Zap, Brain, Shield, MessageSquare, Plus, Trash2, Clock, AlertTriangle, Lightbulb, ArrowUpCircle, Save, Database, Loader2, MapPin, Activity, Compass, Target, Heart, Search } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { RadarChart } from '../components/RadarChart';
 
-const moodConfig: Record<EntityMood, { color: string; label: string; speed: number; amplitude: number }> = {
-  Stable: { color: 'text-emerald-400', label: 'Stable Pulse', speed: 2, amplitude: 10 },
-  Excited: { color: 'text-yellow-400', label: 'High Frequency', speed: 0.5, amplitude: 25 },
-  Unstable: { color: 'text-red-500', label: 'Erratic Signal', speed: 0.2, amplitude: 40 },
-  Melancholy: { color: 'text-blue-400', label: 'Low Resonance', speed: 4, amplitude: 5 },
-  Analytical: { color: 'text-purple-500', label: 'Logic Flow', speed: 1.5, amplitude: 15 },
+const moodConfig: Record<EntityMood, { color: string; label: string; speed: number; amplitude: number; hex: string }> = {
+  Stable: { color: 'text-emerald-400', hex: '#34d399', label: 'Stable Pulse', speed: 2, amplitude: 10 },
+  Excited: { color: 'text-fuchsia-400', hex: '#e879f9', label: 'High Frequency', speed: 0.5, amplitude: 25 },
+  Unstable: { color: 'text-red-500', hex: '#ef4444', label: 'Erratic Signal', speed: 0.2, amplitude: 40 },
+  Melancholy: { color: 'text-blue-400', hex: '#60a5fa', label: 'Low Resonance', speed: 4, amplitude: 5 },
+  Analytical: { color: 'text-amber-400', hex: '#fbbf24', label: 'Logic Flow', speed: 1.5, amplitude: 15 },
 };
 
 const locationNames: Record<string, string> = {
@@ -25,7 +26,7 @@ function MoodWaveform({ mood }: { mood: EntityMood }) {
   const config = moodConfig[mood];
   
   return (
-    <div className="mt-4 p-4 rounded-xl bg-black/40 border border-white/5 overflow-hidden">
+    <div className="mt-4 p-4 rounded-xl bg-black/40 border border-white/5 overflow-hidden relative">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Activity className={`w-4 h-4 ${config.color}`} />
@@ -35,21 +36,70 @@ function MoodWaveform({ mood }: { mood: EntityMood }) {
       </div>
       
       <div className="h-12 flex items-center justify-center gap-1">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(24)].map((_, i) => (
           <motion.div
             key={i}
             animate={{
-              height: [10, config.amplitude + Math.random() * 10, 10],
+              height: mood === 'Unstable' 
+                ? [10, 40, 5, 30, 10] 
+                : mood === 'Excited'
+                ? [15, 35, 15]
+                : [10, config.amplitude + Math.random() * 5, 10],
+              opacity: mood === 'Unstable' ? [0.4, 1, 0.4] : 0.6
             }}
             transition={{
-              duration: config.speed,
+              duration: mood === 'Unstable' ? 0.2 + Math.random() * 0.3 : config.speed,
               repeat: Infinity,
-              delay: i * 0.05,
-              ease: "easeInOut"
+              delay: i * 0.04,
+              ease: mood === 'Unstable' ? "linear" : "easeInOut"
             }}
             className={`w-1 rounded-full ${config.color.replace('text-', 'bg-').replace('500', '500/60').replace('400', '400/60')}`}
           />
         ))}
+      </div>
+      
+      {/* Background Grid */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none" 
+        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '10px 10px' }} 
+      />
+    </div>
+  );
+}
+
+function BehaviorTimeline({ status }: { status: string }) {
+  const behaviors = [
+    { type: 'explore', icon: Compass, color: 'text-blue-400', label: 'Exploring' },
+    { type: 'train', icon: Target, color: 'text-emerald-400', label: 'Training' },
+    { type: 'rest', icon: Clock, color: 'text-slate-400', label: 'Resting' },
+    { type: 'interact', icon: Heart, color: 'text-fuchsia-400', label: 'Interacting' },
+  ];
+
+  return (
+    <div className="mt-6 p-4 rounded-xl bg-black/40 border border-white/5">
+      <div className="flex items-center gap-2 mb-4">
+        <Activity className="w-4 h-4 text-slate-400" />
+        <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Behavior Timeline</span>
+      </div>
+      <div className="flex justify-between items-center relative">
+        <div className="absolute top-1/2 left-0 w-full h-px bg-white/10 -translate-y-1/2" />
+        {behaviors.map((b, i) => {
+          const isActive = status.toLowerCase().includes(b.type);
+          const Icon = b.icon;
+          return (
+            <div key={i} className="relative z-10 flex flex-col items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-500 ${isActive ? `bg-black ${b.color} border-current shadow-[0_0_10px_rgba(255,255,255,0.2)]` : 'bg-slate-900 border-white/10 text-slate-600'}`}>
+                <Icon className="w-4 h-4" />
+                {isActive && (
+                  <motion.div 
+                    layoutId="active-behavior"
+                    className={`absolute inset-0 rounded-full border-2 ${b.color.replace('text-', 'border-')} animate-ping opacity-20`}
+                  />
+                )}
+              </div>
+              <span className={`text-[8px] font-mono uppercase tracking-tighter ${isActive ? b.color : 'text-slate-600'}`}>{b.label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -144,7 +194,7 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="max-w-7xl mx-auto"
+      className={`max-w-7xl mx-auto ${entity.syncRate < 50 ? 'glitch-active' : ''}`}
     >
       <button 
         onClick={() => onNavigate('roster')}
@@ -179,7 +229,7 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
                 )}
               </div>
               <h1 className="font-display text-4xl font-bold text-white mb-2">{entity.name}</h1>
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-6">
                 <span className="px-2 py-1 text-[10px] font-mono uppercase border border-white/20 rounded-full bg-black/50 backdrop-blur-md text-slate-300">
                   Class: {entity.class}
                 </span>
@@ -187,10 +237,27 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
                   Lvl {entity.level}
                 </span>
               </div>
+
+              <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                <p className="text-sm text-slate-300 leading-relaxed italic">
+                  {entity.description}
+                </p>
+              </div>
+
+              {entity.radarStats && (
+                <div className="flex justify-center py-4 bg-black/20 rounded-xl border border-white/5 backdrop-blur-sm">
+                  <RadarChart 
+                    stats={entity.radarStats} 
+                    color={moodConfig[entity.mood || 'Stable'].hex} 
+                    size={160}
+                  />
+                </div>
+              )}
             </div>
           </GlassPanel>
 
           {entity.mood && <MoodWaveform mood={entity.mood} />}
+          <BehaviorTimeline status={entity.status} />
 
           <button 
             onClick={() => onNavigate('synapse', entity.id)}

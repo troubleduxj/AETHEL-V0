@@ -1,0 +1,49 @@
+<svg width="400" height="600" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="novaGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff4444" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#f000ff" stop-opacity="0" />
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="400" height="600" fill="#050505" />
+  
+  <!-- Exploding Grid of Nodes -->
+  <g transform="translate(200, 250)" filter="url(#glow)">
+    <circle r="100" fill="url(#novaGrad)" opacity="0.6" />
+    
+    <!-- Grid Nodes -->
+    <g fill="#ffffff" opacity="0.8">
+      <circle cx="-60" cy="-60" r="3" />
+      <circle cx="0" cy="-60" r="3" />
+      <circle cx="60" cy="-60" r="3" />
+      <circle cx="-60" cy="0" r="3" />
+      <circle cx="0" cy="0" r="3" />
+      <circle cx="60" cy="0" r="3" />
+      <circle cx="-60" cy="60" r="3" />
+      <circle cx="0" cy="60" r="3" />
+      <circle cx="60" cy="60" r="3" />
+    </g>
+    
+    <!-- Connecting Lines -->
+    <path d="M -60 -60 L 60 -60 M -60 0 L 60 0 M -60 60 L 60 60 M -60 -60 L -60 60 M 0 -60 L 0 60 M 60 -60 L 60 60" stroke="#ff4444" stroke-width="1" opacity="0.4">
+      <animate attributeName="opacity" values="0.4;0.1;0.4" dur="1s" repeatCount="Indefinite" />
+    </path>
+    
+    <!-- Exploding Particles -->
+    <circle cx="0" cy="0" r="150" fill="none" stroke="#f000ff" stroke-width="0.5" stroke-dasharray="5 10" opacity="0.2">
+      <animate attributeName="r" values="100;200;100" dur="2s" repeatCount="Indefinite" />
+    </circle>
+  </g>
+  
+  <!-- Nova Particles -->
+  <g fill="#ff4444" opacity="0.5">
+    <circle cx="50" cy="50" r="1.5" />
+    <circle cx="350" cy="50" r="1.5" />
+    <circle cx="50" cy="450" r="1.5" />
+    <circle cx="350" cy="450" r="1.5" />
+  </g>
+</svg>
