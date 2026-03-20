@@ -16,10 +16,10 @@ import { LayoutDashboard, Users, Info, Map, Activity, Swords, Sparkles, Database
 
 import CityMapNexusPrime from './pages/CityMapNexusPrime';
 import CityMapSiliconWastes from './pages/CityMapSiliconWastes';
-import CityMapSector7G from './pages/CityMapSector7G';
-import CityMapNeuralArchives from './pages/CityMapNeuralArchives';
+import CityMapArenaCore from './pages/CityMapArenaCore';
+import CityMapOriginLab from './pages/CityMapOriginLab';
 import CityMapAegisBulwark from './pages/CityMapAegisBulwark';
-import CityMapSynthSea from './pages/CityMapSynthSea';
+import CityMapFractureZone from './pages/CityMapFractureZone';
 import CityMapNeuroGrid7 from './pages/CityMapNeuroGrid7';
 import CityMapEchoVault from './pages/CityMapEchoVault';
 import CityMapVoidBazaar from './pages/CityMapVoidBazaar';
@@ -65,7 +65,7 @@ export default function App() {
     },
     map: {
       name: 'World Map (Exploration)',
-      structure: 'Interactive grid map showing global entity tracking and active regions.',
+      structure: 'Interactive grid map showing global entity tracking and active regions like Origin Lab.',
       components: 'Map Node, Region Overlay, Active Entity Avatars.',
       interaction: 'Click a region to view details and dispatch entities.'
     },
@@ -176,10 +176,10 @@ export default function App() {
           {currentPage === 'map' && <WorldMap key="map" onNavigate={handleNavigate} />}
           {currentPage === 'city-nexus-prime' && <CityMapNexusPrime key="city-nexus-prime" onNavigate={handleNavigate} />}
           {currentPage === 'city-silicon-wastes' && <CityMapSiliconWastes key="city-silicon-wastes" onNavigate={handleNavigate} />}
-          {currentPage === 'city-sector-7g' && <CityMapSector7G key="city-sector-7g" onNavigate={handleNavigate} />}
-          {currentPage === 'city-neural-archives' && <CityMapNeuralArchives key="city-neural-archives" onNavigate={handleNavigate} />}
+          {currentPage === 'city-sector-7g' && <CityMapArenaCore key="city-sector-7g" onNavigate={handleNavigate} />}
+          {currentPage === 'city-neural-archives' && <CityMapOriginLab key="city-neural-archives" onNavigate={handleNavigate} />}
           {currentPage === 'city-aegis-bulwark' && <CityMapAegisBulwark key="city-aegis-bulwark" onNavigate={handleNavigate} />}
-          {currentPage === 'city-synth-sea' && <CityMapSynthSea key="city-synth-sea" onNavigate={handleNavigate} />}
+          {currentPage === 'city-synth-sea' && <CityMapFractureZone key="city-synth-sea" onNavigate={handleNavigate} />}
           {currentPage === 'city-neurogrid-7' && <CityMapNeuroGrid7 key="city-neurogrid-7" onNavigate={handleNavigate} />}
           {currentPage === 'city-echo-vault' && <CityMapEchoVault key="city-echo-vault" onNavigate={handleNavigate} />}
           {currentPage === 'city-void-bazaar' && <CityMapVoidBazaar key="city-void-bazaar" onNavigate={handleNavigate} />}

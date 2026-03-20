@@ -1,20 +1,45 @@
-import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
+import React, { useState, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
 import { PageId } from '../types';
-import { MapPin, AlertCircle, ShieldCheck, HelpCircle, X, Navigation, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { 
+  Zap, Cpu, Brain, ShoppingBag, Target, AlertTriangle, 
+  FlaskConical, X, Navigation, ZoomIn, ZoomOut, Maximize,
+  Activity, ShieldCheck, AlertCircle, HelpCircle, Info, Users
+} from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
-const cities = [
-  { id: 'city-nexus-prime', name: 'Nexus Prime', status: 'Safe', coordinates: { x: 50, y: 50 }, activeEntities: ['1', '2'], type: 'Social / Trade Hub' },
-  { id: 'city-silicon-wastes', name: 'The Silicon Wastes', status: 'Unknown', coordinates: { x: 20, y: 30 }, activeEntities: [], type: 'Exploration / Scavenging' },
-  { id: 'city-sector-7g', name: 'Sector 7G', status: 'Contested', coordinates: { x: 80, y: 20 }, activeEntities: ['3'], type: 'Combat / High Risk' },
-  { id: 'city-neural-archives', name: 'The Neural Archives', status: 'Safe', coordinates: { x: 30, y: 70 }, activeEntities: ['4'], type: 'Lore / Experimental' },
-  { id: 'city-aegis-bulwark', name: 'Aegis Bulwark', status: 'Safe', coordinates: { x: 70, y: 80 }, activeEntities: [], type: 'Defense / Faction Hub' },
-  { id: 'city-synth-sea', name: 'The Synth-Sea', status: 'Unknown', coordinates: { x: 85, y: 55 }, activeEntities: ['5'], type: 'Exploration / Anomalies' },
-  { id: 'city-neurogrid-7', name: 'NeuroGrid-7', status: 'Safe', coordinates: { x: 45, y: 25 }, activeEntities: [], type: 'AI Training Center' },
-  { id: 'city-echo-vault', name: 'ECHO-VAULT', status: 'Safe', coordinates: { x: 15, y: 15 }, activeEntities: [], type: 'AI Memory & Consciousness Space' },
-  { id: 'city-void-bazaar', name: 'VOID BAZAAR', status: 'Safe', coordinates: { x: 60, y: 50 }, activeEntities: [], type: 'AI Social & Trading Hub' }
+interface Node {
+  id: string;
+  name: string;
+  type: 'Core' | 'Training' | 'Memory' | 'Trade' | 'Combat' | 'Anomaly' | 'Lore';
+  status: 'Safe' | 'Contested' | 'Unknown';
+  coordinates: { x: number; y: number };
+  icon: React.ReactNode;
+  color: string;
+}
+
+const NODES: Node[] = [
+  { id: 'city-nexus-prime', name: 'Nexus Prime', type: 'Core', status: 'Safe', coordinates: { x: 50, y: 50 }, icon: <Zap className="w-6 h-6" />, color: 'cyan' },
+  { id: 'city-neurogrid-7', name: 'NeuroGrid', type: 'Training', status: 'Safe', coordinates: { x: 50, y: 20 }, icon: <Cpu className="w-6 h-6" />, color: 'blue' },
+  { id: 'city-echo-vault', name: 'Echo Vault', type: 'Memory', status: 'Safe', coordinates: { x: 20, y: 50 }, icon: <Brain className="w-6 h-6" />, color: 'violet' },
+  { id: 'city-void-bazaar', name: 'Void Bazaar', type: 'Trade', status: 'Safe', coordinates: { x: 80, y: 50 }, icon: <ShoppingBag className="w-6 h-6" />, color: 'emerald' },
+  { id: 'city-sector-7g', name: 'Arena Core', type: 'Combat', status: 'Contested', coordinates: { x: 50, y: 80 }, icon: <Target className="w-6 h-6" />, color: 'fuchsia' },
+  { id: 'city-synth-sea', name: 'Fracture Zone', type: 'Anomaly', status: 'Unknown', coordinates: { x: 80, y: 20 }, icon: <AlertTriangle className="w-6 h-6" />, color: 'amber' },
+  { id: 'city-neural-archives', name: 'Origin Lab', type: 'Lore', status: 'Safe', coordinates: { x: 20, y: 80 }, icon: <FlaskConical className="w-6 h-6" />, color: 'fuchsia' },
+];
+
+const LINKS = [
+  { from: 'city-nexus-prime', to: 'city-neurogrid-7', color: 'cyan' },
+  { from: 'city-nexus-prime', to: 'city-echo-vault', color: 'violet' },
+  { from: 'city-nexus-prime', to: 'city-void-bazaar', color: 'emerald' },
+  { from: 'city-nexus-prime', to: 'city-sector-7g', color: 'fuchsia' },
+  { from: 'city-nexus-prime', to: 'city-synth-sea', color: 'amber' },
+  { from: 'city-nexus-prime', to: 'city-neural-archives', color: 'fuchsia' },
+  { from: 'city-neurogrid-7', to: 'city-synth-sea', color: 'cyan' },
+  { from: 'city-void-bazaar', to: 'city-synth-sea', color: 'emerald' },
+  { from: 'city-echo-vault', to: 'city-neural-archives', color: 'violet' },
+  { from: 'city-sector-7g', to: 'city-neural-archives', color: 'fuchsia' },
 ];
 
 interface WorldMapProps {
@@ -23,7 +48,9 @@ interface WorldMapProps {
 
 export function WorldMap({ onNavigate }: WorldMapProps) {
   const { roster } = useAppContext();
-  const [selectedRegion, setSelectedRegion] = useState<typeof cities[0] | null>(null);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
+  const [selectedLink, setSelectedLink] = useState<{ from: string; to: string; color: string } | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -32,7 +59,6 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
   const handleResetZoom = () => setScale(1);
 
   const handleWheel = (e: React.WheelEvent) => {
-    // Prevent default scrolling behavior is handled by CSS overscroll-none
     setScale(prev => {
       const newScale = prev - e.deltaY * 0.002;
       return Math.min(Math.max(newScale, 0.5), 3);
@@ -41,19 +67,54 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
 
   const getStatusIcon = (status: string) => {
     switch(status) {
-      case 'Safe': return <ShieldCheck className="w-4 h-4 text-neon-emerald" />;
-      case 'Contested': return <AlertCircle className="w-4 h-4 text-neon-fuchsia" />;
+      case 'Safe': return <ShieldCheck className="w-4 h-4 text-emerald-400" />;
+      case 'Contested': return <AlertCircle className="w-4 h-4 text-fuchsia-400" />;
       default: return <HelpCircle className="w-4 h-4 text-slate-400" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'Safe': return 'border-neon-emerald/50 bg-neon-emerald/10';
-      case 'Contested': return 'border-neon-fuchsia/50 bg-neon-fuchsia/10';
-      default: return 'border-slate-500/50 bg-slate-500/10';
+  const getNodeColor = (color: string) => {
+    switch(color) {
+      case 'cyan': return 'text-cyan-400 border-cyan-400/50 shadow-[0_0_15px_rgba(34,211,238,0.5)]';
+      case 'blue': return 'text-blue-400 border-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.5)]';
+      case 'violet': return 'text-violet-400 border-violet-400/50 shadow-[0_0_15px_rgba(167,139,250,0.5)]';
+      case 'emerald': return 'text-emerald-400 border-emerald-400/50 shadow-[0_0_15px_rgba(52,211,153,0.5)]';
+      case 'fuchsia': return 'text-fuchsia-400 border-fuchsia-400/50 shadow-[0_0_15px_rgba(232,121,249,0.5)]';
+      case 'amber': return 'text-amber-400 border-amber-400/50 shadow-[0_0_15px_rgba(251,191,36,0.5)]';
+      case 'indigo': return 'text-indigo-400 border-indigo-400/50 shadow-[0_0_15px_rgba(129,140,248,0.5)]';
+      default: return 'text-slate-400 border-slate-400/50 shadow-[0_0_15px_rgba(148,163,184,0.5)]';
     }
   };
+
+  const getLinkColor = (color: string) => {
+    switch(color) {
+      case 'cyan': return '#22d3ee';
+      case 'blue': return '#60a5fa';
+      case 'violet': return '#a78bfa';
+      case 'emerald': return '#34d199';
+      case 'fuchsia': return '#e879f9';
+      case 'amber': return '#fbbf24';
+      case 'indigo': return '#818cf8';
+      default: return '#94a3b8';
+    }
+  };
+
+  // Simulate AI entities moving between nodes
+  const movingEntities = useMemo(() => {
+    return roster.slice(0, 5).map((ent, idx) => {
+      const link = LINKS[idx % LINKS.length];
+      const fromNode = NODES.find(n => n.id === link.from)!;
+      const toNode = NODES.find(n => n.id === link.to)!;
+      return {
+        id: ent.id,
+        imageUrl: ent.imageUrl,
+        from: fromNode.coordinates,
+        to: toNode.coordinates,
+        delay: idx * 2,
+        duration: 10 + Math.random() * 10
+      };
+    });
+  }, [roster]);
 
   return (
     <motion.div 
@@ -62,15 +123,27 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
       exit={{ opacity: 0, y: -20 }}
       className="max-w-7xl mx-auto h-[calc(100vh-120px)] flex flex-col"
     >
-      <header className="mb-6">
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-white tracking-tighter mb-1">
-          WORLD <span className="text-neon-cyan font-light">MAP</span>
-        </h1>
-        <p className="text-slate-400 font-mono text-xs uppercase tracking-widest">Global Entity Tracking & Auto-Activity</p>
+      <header className="mb-6 flex justify-between items-end">
+        <div>
+          <h1 className="font-display text-3xl md:text-4xl font-bold text-white tracking-tighter mb-1">
+            NETWORK <span className="text-cyan-400 font-light italic">TOPOLOGY</span>
+          </h1>
+          <p className="text-slate-400 font-mono text-xs uppercase tracking-widest flex items-center gap-2">
+            <Activity className="w-3 h-3 text-cyan-400 animate-pulse" /> Global Neural Link Status: OPTIMAL
+          </p>
+        </div>
+        <div className="hidden md:flex gap-4">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-mono text-cyan-400">
+            NODES: {NODES.length}
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/30 text-[10px] font-mono text-violet-400">
+            LINKS: {LINKS.length}
+          </div>
+        </div>
       </header>
 
       <div 
-        className="flex-1 relative rounded-2xl overflow-hidden border border-white/10 bg-[#0a0a0f] overscroll-none touch-none"
+        className="flex-1 relative rounded-2xl overflow-hidden border border-white/10 bg-[#050508] overscroll-none touch-none"
         ref={mapContainerRef}
         onWheel={handleWheel}
       >
@@ -96,130 +169,249 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
           animate={{ scale }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-          {/* Map Grid Background */}
-          <div 
-            className="absolute inset-[-100%] opacity-20"
-            style={{
-              backgroundImage: 'linear-gradient(rgba(0, 243, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.2) 1px, transparent 1px)',
-              backgroundSize: '40px 40px',
-              backgroundPosition: 'center'
-            }}
-          />
+          {/* SVG Layer for Links */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+            <defs>
+              {LINKS.map((link, idx) => (
+                <linearGradient key={`grad-${idx}`} id={`grad-${idx}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={getLinkColor(link.color)} stopOpacity="0.2" />
+                  <stop offset="50%" stopColor={getLinkColor(link.color)} stopOpacity="1" />
+                  <stop offset="100%" stopColor={getLinkColor(link.color)} stopOpacity="0.2" />
+                </linearGradient>
+              ))}
+            </defs>
+            {LINKS.map((link, idx) => {
+              const from = NODES.find(n => n.id === link.from)!.coordinates;
+              const to = NODES.find(n => n.id === link.to)!.coordinates;
+              const isSelected = selectedLink?.from === link.from && selectedLink?.to === link.to;
+              
+              return (
+                <g key={`link-${idx}`} className="cursor-pointer pointer-events-auto" onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedLink(link);
+                }}>
+                  {/* Background Glow Line */}
+                  <line 
+                    x1={`${from.x}%`} y1={`${from.y}%`} 
+                    x2={`${to.x}%`} y2={`${to.y}%`} 
+                    stroke={getLinkColor(link.color)} 
+                    strokeWidth={isSelected ? 4 : 2} 
+                    strokeOpacity={isSelected ? 0.4 : 0.1} 
+                  />
+                  {/* Flowing Dash Line */}
+                  <motion.line 
+                    x1={`${from.x}%`} y1={`${from.y}%`} 
+                    x2={`${to.x}%`} y2={`${to.y}%`} 
+                    stroke={getLinkColor(link.color)} 
+                    strokeWidth={isSelected ? 3 : 1} 
+                    strokeOpacity={isSelected ? 0.8 : 0.4}
+                    strokeDasharray="10 20"
+                    animate={{ strokeDashoffset: [0, -100] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                  />
+                </g>
+              );
+            })}
 
-          {/* Map Regions & Nodes */}
-          {cities.map(region => (
+            {/* Moving AI Entities (Light Points) */}
+            {movingEntities.map((ent, idx) => (
+              <motion.circle
+                key={`moving-${idx}`}
+                r="3"
+                fill="#fff"
+                className="shadow-[0_0_8px_#fff]"
+                initial={{ cx: `${ent.from.x}%`, cy: `${ent.from.y}%`, opacity: 0 }}
+                animate={{ 
+                  cx: [`${ent.from.x}%`, `${ent.to.x}%`], 
+                  cy: [`${ent.from.y}%`, `${ent.to.y}%`],
+                  opacity: [0, 1, 1, 0]
+                }}
+                transition={{ 
+                  duration: ent.duration, 
+                  repeat: Infinity, 
+                  delay: ent.delay,
+                  ease: "easeInOut"
+                }}
+              />
+            ))}
+          </svg>
+
+          {/* Nodes Layer */}
+          {NODES.map(node => (
             <motion.div
-              key={region.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-              style={{ left: `${region.coordinates.x}%`, top: `${region.coordinates.y}%` }}
+              key={node.id}
+              className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10"
+              style={{ left: `${node.coordinates.x}%`, top: `${node.coordinates.y}%` }}
+              onMouseEnter={() => setHoveredNode(node)}
+              onMouseLeave={() => setHoveredNode(null)}
               onClick={(e) => {
                 e.stopPropagation();
-                setSelectedRegion(region);
+                setSelectedNode(node);
               }}
-              whileHover={{ scale: 1.1 }}
             >
-            {/* Pulse effect for contested */}
-            {region.status === 'Contested' && (
-              <div className="absolute inset-0 rounded-full bg-neon-fuchsia/30 animate-ping" />
-            )}
-            
-            <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center backdrop-blur-md relative z-10 ${getStatusColor(region.status)}`}>
-              {getStatusIcon(region.status)}
-            </div>
+              {/* Breathing Glow */}
+              <motion.div 
+                className={`absolute inset-0 rounded-full blur-xl opacity-20 ${getNodeColor(node.color)}`}
+                animate={{ scale: [1, 1.5, 1], opacity: [0.1, 0.3, 0.1] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              />
+              
+              {/* Node Core */}
+              <motion.div 
+                className={`w-14 h-14 rounded-full border-2 bg-black/80 flex items-center justify-center relative z-20 backdrop-blur-xl transition-all ${getNodeColor(node.color)} ${selectedNode?.id === node.id ? 'scale-110 border-white' : ''}`}
+                whileHover={{ scale: 1.1 }}
+              >
+                {node.icon}
+                
+                {/* Contested Pulse */}
+                {node.status === 'Contested' && (
+                  <div className="absolute -inset-1 rounded-full border border-fuchsia-500 animate-ping opacity-50" />
+                )}
+              </motion.div>
 
-            {/* Region Label */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap text-center pointer-events-none">
-              <div className="font-mono text-xs text-white font-bold drop-shadow-md">{region.name}</div>
-              <div className="font-mono text-[10px] text-neon-cyan">{region.type}</div>
-            </div>
-
-            {/* Active Entity Avatars */}
-            {region.activeEntities.length > 0 && (
-              <div className="absolute -top-4 -right-4 flex -space-x-2">
-                {region.activeEntities.map(entId => {
-                  const ent = roster.find(e => e.id === entId);
-                  if (!ent) return null;
-                  return (
-                    <div key={entId} className="w-6 h-6 rounded-full border border-neon-cyan overflow-hidden bg-black">
-                      <img src={ent.imageUrl} alt={ent.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </div>
-                  );
-                })}
+              {/* Node Label */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 text-center pointer-events-none">
+                <div className="text-[10px] font-mono text-white font-bold whitespace-nowrap drop-shadow-md uppercase tracking-tighter">
+                  {node.name}
+                </div>
+                <div className={`text-[8px] font-mono uppercase tracking-widest opacity-70 ${node.status === 'Contested' ? 'text-fuchsia-400' : 'text-cyan-400'}`}>
+                  {node.type}
+                </div>
               </div>
-            )}
-          </motion.div>
-        ))}
+            </motion.div>
+          ))}
         </motion.div>
 
-        {/* Selected Region Overlay */}
+        {/* Hover Info Tooltip */}
         <AnimatePresence>
-          {selectedRegion && (
+          {hoveredNode && !selectedNode && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute pointer-events-none z-40"
+              style={{ 
+                left: `${hoveredNode.coordinates.x}%`, 
+                top: `${hoveredNode.coordinates.y - 10}%`,
+                transform: 'translateX(-50%)'
+              }}
+            >
+              <div className="bg-black/90 border border-white/20 px-3 py-2 rounded backdrop-blur-md shadow-2xl">
+                <div className="flex items-center gap-2 mb-1">
+                  {getStatusIcon(hoveredNode.status)}
+                  <span className="text-xs font-bold text-white">{hoveredNode.name}</span>
+                </div>
+                <div className="text-[10px] font-mono text-slate-400 uppercase">{hoveredNode.status} | {hoveredNode.type}</div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Selected Node Overlay */}
+        <AnimatePresence>
+          {selectedNode && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="absolute top-4 right-4 w-80"
+              className="absolute top-4 right-4 w-80 z-50"
             >
-              <GlassPanel className="p-5">
+              <GlassPanel className={`p-5 border-${selectedNode.color}-500/30`}>
                 <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-display text-xl font-bold text-white mb-1">{selectedRegion.name}</h3>
-                    <div className="flex items-center gap-2 font-mono text-xs">
-                      {getStatusIcon(selectedRegion.status)}
-                      <span className="text-slate-300 uppercase">{selectedRegion.status}</span>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded border flex items-center justify-center ${getNodeColor(selectedNode.color)}`}>
+                      {selectedNode.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-display text-xl font-bold text-white mb-0.5">{selectedNode.name}</h3>
+                      <div className="flex items-center gap-2 font-mono text-[10px]">
+                        {getStatusIcon(selectedNode.status)}
+                        <span className="text-slate-300 uppercase">{selectedNode.status}</span>
+                      </div>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedRegion(null)} className="text-slate-400 hover:text-white">
+                  <button onClick={() => setSelectedNode(null)} className="text-slate-400 hover:text-white">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 <div className="space-y-4">
+                  <p className="text-xs text-slate-400 font-mono leading-relaxed">
+                    Accessing {selectedNode.name} neural pathways. Node type: {selectedNode.type}. 
+                    Stability: {selectedNode.status === 'Safe' ? 'OPTIMAL' : 'FLUCTUATING'}.
+                  </p>
+
                   <div>
-                    <h4 className="font-mono text-[10px] text-slate-500 uppercase mb-2">Active Entities in Sector</h4>
-                    {selectedRegion.activeEntities.length > 0 ? (
-                      <div className="space-y-2">
-                        {selectedRegion.activeEntities.map(entId => {
-                          const ent = roster.find(e => e.id === entId);
-                          if (!ent) return null;
-                          return (
-                            <div 
-                              key={entId} 
-                              className="flex items-center justify-between p-2 rounded bg-black/40 border border-white/5 hover:border-neon-cyan/30 cursor-pointer transition-colors"
-                              onClick={() => onNavigate('logs')}
-                            >
-                              <div className="flex items-center gap-2">
-                                <img src={ent.imageUrl} alt={ent.name} className="w-8 h-8 rounded border border-white/10 object-cover" referrerPolicy="no-referrer" />
-                                <div>
-                                  <div className="font-bold text-sm text-white">{ent.name}</div>
-                                  <div className="font-mono text-[10px] text-neon-cyan">{ent.status}</div>
-                                </div>
-                              </div>
-                              <Navigation className="w-4 h-4 text-slate-500" />
-                            </div>
-                          );
-                        })}
+                    <h4 className="font-mono text-[10px] text-slate-500 uppercase mb-2 flex items-center gap-2">
+                      <Users className="w-3 h-3" /> Local Entity Presence
+                    </h4>
+                    <div className="flex -space-x-2 mb-4">
+                      {roster.slice(0, 4).map(ent => (
+                        <div key={ent.id} className="w-8 h-8 rounded-full border border-white/20 bg-black overflow-hidden">
+                          <img src={ent.imageUrl} alt={ent.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        </div>
+                      ))}
+                      <div className="w-8 h-8 rounded-full border border-white/20 bg-slate-900 flex items-center justify-center text-[10px] font-mono text-slate-400">
+                        +12
                       </div>
-                    ) : (
-                      <div className="text-xs text-slate-500 font-mono italic">No entities detected.</div>
-                    )}
+                    </div>
                   </div>
 
-                  {selectedRegion.status === 'Contested' && (
+                  <div className="grid grid-cols-2 gap-2">
                     <button 
-                      onClick={() => onNavigate('combat')}
-                      className="w-full py-2 rounded bg-neon-fuchsia/20 border border-neon-fuchsia/50 text-neon-fuchsia font-mono text-sm hover:bg-neon-fuchsia hover:text-white transition-colors"
+                      onClick={() => onNavigate(selectedNode.id as PageId)}
+                      className="py-2 rounded bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 font-mono text-[10px] hover:bg-cyan-500 hover:text-slate-900 transition-all flex items-center justify-center gap-2"
                     >
-                      ENGAGE COMBAT
+                      <Navigation className="w-3 h-3" /> SYNC NODE
                     </button>
-                  )}
-                  
-                  <button 
-                    onClick={() => onNavigate(selectedRegion.id as PageId)}
-                    className="w-full py-2 rounded bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan font-mono text-sm hover:bg-neon-cyan hover:text-slate-900 transition-colors"
-                  >
-                    ENTER REGION
+                    <button 
+                      className="py-2 rounded bg-white/5 border border-white/10 text-slate-400 font-mono text-[10px] hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
+                    >
+                      <Info className="w-3 h-3" /> ANALYZE
+                    </button>
+                  </div>
+                </div>
+              </GlassPanel>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Link Info Overlay */}
+        <AnimatePresence>
+          {selectedLink && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 w-96 z-50"
+            >
+              <GlassPanel className="p-4 border-white/10">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-mono text-[10px] text-slate-500 uppercase tracking-widest">Neural Link Information</h3>
+                  <button onClick={() => setSelectedLink(null)} className="text-slate-400 hover:text-white">
+                    <X className="w-4 h-4" />
                   </button>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="text-center flex-1">
+                    <div className="text-xs font-bold text-white mb-1">{NODES.find(n => n.id === selectedLink.from)?.name}</div>
+                    <div className="text-[8px] font-mono text-slate-500 uppercase">SOURCE</div>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center">
+                    <div className="w-full h-px bg-white/10 relative">
+                      <motion.div 
+                        className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                        style={{ backgroundColor: getLinkColor(selectedLink.color) }}
+                        animate={{ left: ['0%', '100%'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    </div>
+                    <div className="text-[8px] font-mono mt-2" style={{ color: getLinkColor(selectedLink.color) }}>DATA STREAMING</div>
+                  </div>
+                  <div className="text-center flex-1">
+                    <div className="text-xs font-bold text-white mb-1">{NODES.find(n => n.id === selectedLink.to)?.name}</div>
+                    <div className="text-[8px] font-mono text-slate-500 uppercase">TARGET</div>
+                  </div>
                 </div>
               </GlassPanel>
             </motion.div>

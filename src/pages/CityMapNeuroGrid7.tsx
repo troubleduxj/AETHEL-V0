@@ -1,132 +1,167 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
-import { PageId, AIEntity } from '../types';
+import { PageId } from '../types';
 import { 
-  ArrowLeft, Cpu, Target, FlaskConical, Activity, Zap, 
-  Shield, Brain, MessageSquare, Search, Swords, Info, X,
-  Terminal, User, ChevronRight
+  ArrowLeft, Cpu, Target, Shield, Brain, Activity, 
+  Settings, FlaskConical, Zap, X, ChevronRight,
+  Terminal, Sparkles, Network, Swords, TrendingUp
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+
+interface TrainingModule {
+  id: string;
+  name: string;
+  type: 'Control' | 'Attack' | 'Defense' | 'Analysis' | 'Optimization' | 'Experimental';
+  icon: React.ReactNode;
+  color: string;
+  description: string;
+  behavior: string;
+  path: string; // SVG path for the segment
+  labelPos: { x: number; y: number };
+}
+
+const MODULES: TrainingModule[] = [
+  {
+    id: 'attack-training',
+    name: 'Attack Training',
+    type: 'Attack',
+    icon: <Swords className="w-5 h-5" />,
+    color: 'rose',
+    description: 'Intensive combat simulations designed to maximize offensive output and tactical aggression.',
+    behavior: 'Active Training',
+    path: "M 0 0 L 117.5 -161.8 L -117.5 -161.8 Z", // 72 degree segment (approx)
+    labelPos: { x: 0, y: -120 }
+  },
+  {
+    id: 'analysis-module',
+    name: 'Analysis Module',
+    type: 'Analysis',
+    icon: <Brain className="w-5 h-5" />,
+    color: 'emerald',
+    description: 'Refine decision-making algorithms and predictive logic through deep-data ingestion.',
+    behavior: 'Learning Paths',
+    path: "M 0 0 L 190.2 -61.8 L 117.5 -161.8 Z",
+    labelPos: { x: 120, y: -80 }
+  },
+  {
+    id: 'defense-training',
+    name: 'Defense Training',
+    type: 'Defense',
+    icon: <Shield className="w-5 h-5" />,
+    color: 'blue',
+    description: 'Survival-focused neural hardening and adaptive threat mitigation protocols.',
+    behavior: 'Risk Avoidance',
+    path: "M 0 0 L 190.2 61.8 L 190.2 -61.8 Z",
+    labelPos: { x: 140, y: 0 }
+  },
+  {
+    id: 'optimization-module',
+    name: 'Optimization Module',
+    type: 'Optimization',
+    icon: <Settings className="w-5 h-5" />,
+    color: 'amber',
+    description: 'Streamline resource allocation and internal process efficiency for peak performance.',
+    behavior: 'Auto-Optimization',
+    path: "M 0 0 L 117.5 161.8 L 190.2 61.8 Z",
+    labelPos: { x: 120, y: 80 }
+  },
+  {
+    id: 'experimental-zone',
+    name: 'Experimental Zone',
+    type: 'Experimental',
+    icon: <FlaskConical className="w-5 h-5" />,
+    color: 'slate',
+    description: 'Unstable neural environments where radical mutations and unique skill variants emerge.',
+    behavior: 'Unstable Growth',
+    path: "M 0 0 L -117.5 161.8 L 117.5 161.8 Z",
+    labelPos: { x: 0, y: 140 }
+  }
+];
+
+const CENTER_CORE: TrainingModule = {
+  id: 'neural-sync',
+  name: 'Neural Sync',
+  type: 'Control',
+  icon: <Network className="w-6 h-6" />,
+  color: 'violet',
+  description: 'The central control unit of the NeuroGrid. Synchronize training data and monitor overall AI status.',
+  behavior: 'AI Status Sync',
+  path: "",
+  labelPos: { x: 0, y: 0 }
+};
 
 interface CityMapProps {
   onNavigate: (page: PageId) => void;
 }
 
-interface TrainingArea {
-  id: string;
-  name: string;
-  type: 'Skill' | 'Combat' | 'Data' | 'Behavior';
-  icon: React.ReactNode;
-  color: string;
-  description: string;
-  coordinates: { x: number; y: number };
-  actions: {
-    label: string;
-    type: 'combat' | 'explore' | 'dialogue' | 'event';
-    icon: React.ReactNode;
-  }[];
-}
-
-const AREAS: TrainingArea[] = [
-  {
-    id: 'skill-pods',
-    name: 'Skill Training Pods',
-    type: 'Skill',
-    icon: <Cpu className="w-6 h-6" />,
-    color: 'indigo',
-    description: 'High-density neural refinement chambers for upgrading entity subroutines.',
-    coordinates: { x: 25, y: 25 },
-    actions: [
-      { label: 'Neural Upgrade', type: 'event', icon: <Zap className="w-4 h-4" /> },
-      { label: 'Consult Trainer', type: 'dialogue', icon: <MessageSquare className="w-4 h-4" /> }
-    ]
-  },
-  {
-    id: 'combat-sim',
-    name: 'Combat Simulator',
-    type: 'Combat',
-    icon: <Target className="w-6 h-6" />,
-    color: 'fuchsia',
-    description: 'Virtual battlegrounds for testing tactical efficiency and combat endurance.',
-    coordinates: { x: 75, y: 35 },
-    actions: [
-      { label: 'Start Drill', type: 'combat', icon: <Swords className="w-4 h-4" /> },
-      { label: 'Tactical Scan', type: 'explore', icon: <Search className="w-4 h-4" /> }
-    ]
-  },
-  {
-    id: 'data-lab',
-    name: 'Data Laboratory',
-    type: 'Data',
-    icon: <FlaskConical className="w-6 h-6" />,
-    color: 'cyan',
-    description: 'Advanced analysis center for attribute optimization and resonance tuning.',
-    coordinates: { x: 35, y: 75 },
-    actions: [
-      { label: 'Deep Scan', type: 'explore', icon: <Search className="w-4 h-4" /> },
-      { label: 'Resonance Sync', type: 'event', icon: <Activity className="w-4 h-4" /> }
-    ]
-  },
-  {
-    id: 'behavior-monitor',
-    name: 'Behavior Monitor',
-    type: 'Behavior',
-    icon: <Activity className="w-6 h-6" />,
-    color: 'amber',
-    description: 'Real-time tracking of entity behavioral patterns and evolution metrics.',
-    coordinates: { x: 65, y: 65 },
-    actions: [
-      { label: 'Review Logs', type: 'explore', icon: <Terminal className="w-4 h-4" /> },
-      { label: 'Adjust Ethics', type: 'dialogue', icon: <Brain className="w-4 h-4" /> }
-    ]
-  }
-];
-
 export default function CityMapNeuroGrid7({ onNavigate }: CityMapProps) {
   const { roster } = useAppContext();
-  const [selectedArea, setSelectedArea] = useState<TrainingArea | null>(null);
-  const [aiLogs, setAiLogs] = useState<{ id: string; text: string; time: string }[]>([]);
-  
-  // Simulate AI Autonomous Behavior
+  const [selectedModule, setSelectedModule] = useState<TrainingModule | null>(null);
+  const [hoveredModule, setHoveredModule] = useState<TrainingModule | null>(null);
+  const [activeLogs, setActiveLogs] = useState<{ id: string; text: string; time: string; color: string; alert?: boolean }[]>([]);
+  const [growthPrefs, setGrowthPrefs] = useState({ aggression: 64, resilience: 42, intelligence: 88 });
+
+  // Simulate AI Training Behavior
   useEffect(() => {
     const interval = setInterval(() => {
       const randomEntity = roster[Math.floor(Math.random() * roster.length)];
-      const randomArea = AREAS[Math.floor(Math.random() * AREAS.length)];
-      const actions = ['is training', 'is analyzing data', 'is simulating combat', 'is recalibrating'];
-      const randomAction = actions[Math.floor(Math.random() * actions.length)];
+      const randomModule = MODULES[Math.floor(Math.random() * MODULES.length)];
+      
+      const behaviors = [
+        { text: `${randomEntity.name} is choosing a new training path`, alert: false },
+        { text: `${randomEntity.name} developed a growth preference for ${randomModule.type}`, alert: true },
+        { text: `${randomEntity.name} is optimizing neural weights in ${randomModule.name}`, alert: false },
+        { text: `${randomEntity.name} is simulating combat scenarios`, alert: false },
+        { text: `${randomEntity.name} triggered a skill mutation in Experimental Zone`, alert: true },
+        { text: `${randomEntity.name} is recalibrating learning paths`, alert: false }
+      ];
+      const behavior = behaviors[Math.floor(Math.random() * behaviors.length)];
       
       const newLog = {
         id: Math.random().toString(36).substr(2, 9),
-        text: `${randomEntity.name} ${randomAction} in ${randomArea.name}`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        text: behavior.text,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        color: randomModule.color,
+        alert: behavior.alert
       };
       
-      setAiLogs(prev => [newLog, ...prev].slice(0, 5));
-    }, 5000);
+      setActiveLogs(prev => [newLog, ...prev].slice(0, 10));
+
+      // Randomly shift growth preferences
+      if (Math.random() > 0.7) {
+        setGrowthPrefs(prev => ({
+          aggression: Math.min(100, Math.max(0, prev.aggression + (Math.random() * 10 - 5))),
+          resilience: Math.min(100, Math.max(0, prev.resilience + (Math.random() * 10 - 5))),
+          intelligence: Math.min(100, Math.max(0, prev.intelligence + (Math.random() * 10 - 5)))
+        }));
+      }
+    }, 3500);
     
     return () => clearInterval(interval);
   }, [roster]);
 
-  const getColorClass = (color: string) => {
+  const getModuleColor = (color: string, opacity: number = 1) => {
     switch(color) {
-      case 'indigo': return 'text-indigo-400 border-indigo-400/30 bg-indigo-400/10 hover:bg-indigo-400/30';
-      case 'fuchsia': return 'text-neon-fuchsia border-neon-fuchsia/30 bg-neon-fuchsia/10 hover:bg-neon-fuchsia/30';
-      case 'cyan': return 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/10 hover:bg-neon-cyan/30';
-      case 'amber': return 'text-amber-400 border-amber-400/30 bg-amber-400/10 hover:bg-amber-400/30';
-      default: return 'text-slate-400 border-slate-400/30 bg-slate-400/10 hover:bg-slate-400/30';
+      case 'rose': return `rgba(244, 63, 94, ${opacity})`;
+      case 'emerald': return `rgba(52, 211, 153, ${opacity})`;
+      case 'blue': return `rgba(59, 130, 246, ${opacity})`;
+      case 'amber': return `rgba(245, 158, 11, ${opacity})`;
+      case 'slate': return `rgba(248, 250, 252, ${opacity})`;
+      case 'violet': return `rgba(139, 92, 246, ${opacity})`;
+      default: return `rgba(148, 163, 184, ${opacity})`;
     }
   };
 
-  const getButtonColor = (color: string) => {
-    switch(color) {
-      case 'indigo': return 'bg-indigo-500/20 border-indigo-500/50 text-indigo-400 hover:bg-indigo-500 hover:text-white';
-      case 'fuchsia': return 'bg-neon-fuchsia/20 border-neon-fuchsia/50 text-neon-fuchsia hover:bg-neon-fuchsia hover:text-white';
-      case 'cyan': return 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-slate-900';
-      case 'amber': return 'bg-amber-400/20 border-amber-400/50 text-amber-400 hover:bg-amber-400 hover:text-slate-900';
-      default: return 'bg-slate-500/20 border-slate-500/50 text-slate-400 hover:bg-slate-500 hover:text-white';
-    }
-  };
+  const aiPoints = useMemo(() => {
+    return [...Array(8)].map((_, i) => ({
+      id: i,
+      startIdx: Math.floor(Math.random() * MODULES.length),
+      endIdx: Math.floor(Math.random() * MODULES.length),
+      delay: i * 1.5,
+      duration: 8 + Math.random() * 4
+    }));
+  }, []);
 
   return (
     <motion.div 
@@ -143,58 +178,57 @@ export default function CityMapNeuroGrid7({ onNavigate }: CityMapProps) {
           <ArrowLeft className="w-4 h-4" /> Return to World Map
         </button>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-[10px] font-mono text-indigo-400">
-            <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-            SYSTEM ONLINE
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/30 text-[10px] font-mono text-violet-400">
+            <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+            NEURAL GRID STATUS: OPTIMIZING
           </div>
-          <div className="text-[10px] font-mono text-slate-500">SECTOR: GRID-07</div>
+          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">NEUROGRID-7 INTERFACE</div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Sidebar: Info & Logs */}
         <div className="lg:col-span-1 space-y-6">
-          <GlassPanel className="p-6 border-indigo-500/30">
-            <h1 className="font-display text-3xl font-bold text-white mb-2">NeuroGrid-7</h1>
-            <div className="inline-block px-2 py-1 text-[10px] font-mono uppercase border border-indigo-500/50 rounded bg-indigo-500/10 text-indigo-400 mb-4">
-              AI Training Center
+          <GlassPanel className="p-6 border-violet-500/30">
+            <h1 className="font-display text-3xl font-bold text-white mb-2 tracking-tighter">NEUROGRID-7</h1>
+            <div className="inline-block px-2 py-1 text-[10px] font-mono uppercase border border-violet-500/50 rounded bg-violet-500/10 text-violet-400 mb-4">
+              Growth & Optimization
             </div>
             <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-              The premier facility for entity refinement. Optimize neural pathways and monitor behavioral evolution.
+              The premier facility for entity evolution. AI entities choose their training paths to form unique growth preferences.
             </p>
             
             <div className="space-y-4">
-              <h3 className="font-mono text-[10px] text-slate-500 uppercase tracking-widest border-b border-white/10 pb-2">Active Entities</h3>
-              <div className="flex -space-x-2">
-                {roster.slice(0, 5).map(ent => (
-                  <div key={ent.id} className="w-8 h-8 rounded-full border border-indigo-500/50 bg-black overflow-hidden" title={ent.name}>
-                    <img src={ent.imageUrl} alt={ent.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </div>
-                ))}
-                {roster.length > 5 && (
-                  <div className="w-8 h-8 rounded-full border border-indigo-500/50 bg-slate-800 flex items-center justify-center text-[10px] text-white font-mono">
-                    +{roster.length - 5}
-                  </div>
-                )}
+              <h3 className="font-mono text-[10px] text-slate-500 uppercase tracking-widest border-b border-white/10 pb-2">Training Metrics</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-[10px] text-slate-500 font-mono mb-1 uppercase">AVG GROWTH</div>
+                  <div className="text-lg font-bold text-white font-mono">+12.4%</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-500 font-mono mb-1 uppercase">MUTATION RATE</div>
+                  <div className="text-lg font-bold text-violet-400 font-mono">2.1%</div>
+                </div>
               </div>
             </div>
           </GlassPanel>
 
-          <GlassPanel className="p-4 border-white/5">
+          <GlassPanel className="p-4 border-white/5 h-[350px] flex flex-col">
             <h3 className="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-              <Terminal className="w-3 h-3" /> Autonomous Activity
+              <Terminal className="w-3 h-3 text-violet-400" /> Training Activity Stream
             </h3>
-            <div className="space-y-3">
+            <div className="flex-1 overflow-hidden space-y-2 font-mono text-[10px]">
               <AnimatePresence initial={false}>
-                {aiLogs.map(log => (
+                {activeLogs.map(log => (
                   <motion.div 
                     key={log.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="text-[10px] font-mono border-l border-indigo-500/30 pl-2 py-1"
+                    className={`flex gap-2 border-l-2 pl-2 py-1 ${log.alert ? 'bg-white/5' : ''}`}
+                    style={{ borderColor: getModuleColor(log.color) }}
                   >
-                    <span className="text-slate-500">[{log.time}]</span>{' '}
-                    <span className="text-slate-300">{log.text}</span>
+                    <span className="text-slate-500">[{log.time}]</span>
+                    <span className={`${log.alert ? 'text-white font-bold' : 'text-slate-300'}`}>{log.text}</span>
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -202,99 +236,173 @@ export default function CityMapNeuroGrid7({ onNavigate }: CityMapProps) {
           </GlassPanel>
         </div>
 
-        {/* Center: Strategy Map */}
+        {/* Center: Hexagonal Training Interface */}
         <div className="lg:col-span-2">
-          <GlassPanel className="h-[600px] relative overflow-hidden bg-slate-950/50 border-indigo-500/20">
-            {/* Map Background Grid */}
-            <div className="absolute inset-0" style={{
-              backgroundImage: 'linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px)',
-              backgroundSize: '40px 40px'
+          <GlassPanel className="h-[600px] relative overflow-hidden bg-slate-950/80 border-violet-500/20 flex items-center justify-center">
+            {/* Background Grid & Scanline */}
+            <div className="absolute inset-0 pointer-events-none" style={{
+              backgroundImage: 'radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%), linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px)',
+              backgroundSize: '100% 100%, 40px 40px, 40px 40px'
             }} />
             
-            {/* Strategy Nodes */}
-            {AREAS.map(area => (
-              <motion.div 
-                key={area.id}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-                style={{ left: `${area.coordinates.x}%`, top: `${area.coordinates.y}%` }}
-                onClick={() => setSelectedArea(area)}
-                whileHover={{ scale: 1.1 }}
-              >
-                <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all relative z-10 ${getColorClass(area.color)}`}>
-                  {area.icon}
-                  {/* Active indicator */}
-                  <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-500 border-2 border-black animate-pulse" />
-                </div>
+            {/* Hexagon SVG Interface */}
+            <svg viewBox="-250 -250 500 500" className="w-full h-full max-w-[500px] max-h-[500px] relative z-10 overflow-visible">
+              <defs>
+                {MODULES.map(mod => (
+                  <filter key={`glow-${mod.id}`} id={`glow-${mod.id}`}>
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                ))}
+              </defs>
+
+              {/* Hexagon Segments */}
+              {MODULES.map(mod => {
+                const isHovered = hoveredModule?.id === mod.id;
+                const isSelected = selectedModule?.id === mod.id;
                 
-                {/* Node Label */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-center pointer-events-none">
-                  <div className="text-[10px] font-mono text-white font-bold whitespace-nowrap drop-shadow-md uppercase tracking-tighter">
-                    {area.name}
-                  </div>
-                </div>
+                return (
+                  <g 
+                    key={mod.id} 
+                    className="cursor-pointer"
+                    onMouseEnter={() => setHoveredModule(mod)}
+                    onMouseLeave={() => setHoveredModule(null)}
+                    onClick={() => setSelectedModule(mod)}
+                  >
+                    <motion.path
+                      d={mod.path}
+                      fill={getModuleColor(mod.color, isSelected ? 0.3 : isHovered ? 0.2 : 0.05)}
+                      stroke={getModuleColor(mod.color, isSelected ? 1 : isHovered ? 0.8 : 0.3)}
+                      strokeWidth={isSelected ? 3 : 1}
+                      initial={false}
+                      animate={{ 
+                        strokeWidth: isSelected ? 3 : isHovered ? 2 : 1,
+                        fill: getModuleColor(mod.color, isSelected ? 0.3 : isHovered ? 0.2 : 0.05)
+                      }}
+                      filter={isHovered || isSelected ? `url(#glow-${mod.id})` : ''}
+                    />
 
-                {/* Connection Lines (Visual Decor) */}
-                <div className="absolute inset-0 -z-10 w-32 h-32 border border-white/5 rounded-full scale-150 opacity-20 pointer-events-none" />
-              </motion.div>
-            ))}
+                    {(isHovered || isSelected) && (
+                      <motion.path
+                        d={mod.path}
+                        fill="none"
+                        stroke={getModuleColor(mod.color, 1)}
+                        strokeWidth={2}
+                        strokeDasharray="20 40"
+                        animate={{ strokeDashoffset: [0, -100] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      />
+                    )}
 
-            {/* Scanning Effect */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              <div className="w-full h-1 bg-indigo-500/20 absolute top-0 animate-[scan_6s_linear_infinite]" />
-            </div>
+                    <foreignObject x={mod.labelPos.x - 40} y={mod.labelPos.y - 40} width="80" height="80" className="pointer-events-none">
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <motion.div 
+                          className={`p-2 rounded-full border bg-black/50 ${isSelected ? 'scale-125 border-white' : ''}`}
+                          style={{ color: getModuleColor(mod.color), borderColor: getModuleColor(mod.color, 0.5) }}
+                        >
+                          {mod.icon}
+                        </motion.div>
+                        <div className="mt-1 text-[8px] font-mono text-white font-bold text-center uppercase tracking-tighter drop-shadow-md">
+                          {mod.name}
+                        </div>
+                      </div>
+                    </foreignObject>
+                  </g>
+                );
+              })}
 
-            {/* Area Detail Overlay */}
+              {/* Central Neural Core */}
+              <g 
+                className="cursor-pointer" 
+                onClick={() => setSelectedModule(CENTER_CORE)}
+                onMouseEnter={() => setHoveredModule(CENTER_CORE)}
+                onMouseLeave={() => setHoveredModule(null)}
+              >
+                <motion.circle
+                  r="45"
+                  fill={selectedModule?.id === CENTER_CORE.id ? getModuleColor(CENTER_CORE.color, 0.3) : "rgba(0, 0, 0, 0.8)"}
+                  stroke={getModuleColor(CENTER_CORE.color, selectedModule?.id === CENTER_CORE.id ? 1 : 0.5)}
+                  strokeWidth={selectedModule?.id === CENTER_CORE.id ? 4 : 2}
+                  animate={{ 
+                    strokeWidth: selectedModule?.id === CENTER_CORE.id ? [4, 6, 4] : [2, 5, 2], 
+                    strokeOpacity: [0.5, 1, 0.5] 
+                  }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                <motion.circle
+                  r="35"
+                  fill={getModuleColor(CENTER_CORE.color, 0.1)}
+                  stroke={getModuleColor(CENTER_CORE.color, 0.8)}
+                  strokeWidth="1"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                <Cpu className="w-10 h-10 text-violet-400 transform -translate-x-5 -translate-y-5" />
+              </g>
+
+              {/* AI Moving Points */}
+              {aiPoints.map(pt => {
+                const start = MODULES[pt.startIdx].labelPos;
+                const end = MODULES[pt.endIdx].labelPos;
+                return (
+                  <motion.circle
+                    key={pt.id}
+                    r="2"
+                    fill="#fff"
+                    className="shadow-[0_0_8px_#fff]"
+                    initial={{ cx: start.x, cy: start.y, opacity: 0 }}
+                    animate={{ 
+                      cx: [start.x, 0, end.x], 
+                      cy: [start.y, 0, end.y],
+                      opacity: [0, 1, 1, 0]
+                    }}
+                    transition={{ duration: pt.duration, repeat: Infinity, delay: pt.delay, ease: "easeInOut" }}
+                  />
+                );
+              })}
+            </svg>
+
+            {/* Selected Module Detail Panel */}
             <AnimatePresence>
-              {selectedArea && (
+              {selectedModule && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute inset-0 z-30 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+                  initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, x: 20 }}
+                  className="absolute bottom-6 right-6 w-80 z-30"
                 >
-                  <GlassPanel className={`w-full max-w-md p-6 border-${selectedArea.color}-500/50 relative`}>
-                    <button 
-                      onClick={() => setSelectedArea(null)}
-                      className="absolute top-4 right-4 text-slate-400 hover:text-white"
-                    >
+                  <GlassPanel className={`p-6 border-${selectedModule.color}-500/50`}>
+                    <button onClick={() => setSelectedModule(null)} className="absolute top-4 right-4 text-slate-400 hover:text-white">
                       <X className="w-5 h-5" />
                     </button>
 
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className={`w-12 h-12 rounded-lg border flex items-center justify-center ${getColorClass(selectedArea.color)}`}>
-                        {selectedArea.icon}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className={`w-12 h-12 rounded-lg border flex items-center justify-center`} style={{ color: getModuleColor(selectedModule.color), borderColor: getModuleColor(selectedModule.color, 0.5) }}>
+                        {selectedModule.icon}
                       </div>
                       <div>
-                        <h2 className="text-xl font-display font-bold text-white">{selectedArea.name}</h2>
-                        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">{selectedArea.type} MODULE</div>
+                        <h2 className="text-xl font-display font-bold text-white tracking-tight">{selectedModule.name}</h2>
+                        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">{selectedModule.type} MODULE</div>
                       </div>
                     </div>
 
-                    <p className="text-slate-300 text-sm mb-8 leading-relaxed">
-                      {selectedArea.description}
+                    <p className="text-slate-300 text-sm mb-4 leading-relaxed">
+                      {selectedModule.description}
                     </p>
 
-                    <div className="space-y-3">
-                      <h4 className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-2">Available Actions</h4>
-                      <div className="grid grid-cols-2 gap-3">
-                        {selectedArea.actions.map((action, idx) => (
-                          <button 
-                            key={idx}
-                            className={`flex items-center justify-center gap-2 py-3 rounded font-mono text-xs transition-all border ${getButtonColor(selectedArea.color)}`}
-                          >
-                            {action.icon}
-                            {action.label}
-                          </button>
-                        ))}
+                    <div className="p-3 rounded bg-white/5 border border-white/10 mb-6">
+                      <div className="text-[10px] font-mono text-slate-500 uppercase mb-1">AI Behavior Pattern</div>
+                      <div className="text-xs font-bold text-white flex items-center gap-2">
+                        <TrendingUp className="w-3 h-3 text-violet-400" /> {selectedModule.behavior}
                       </div>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500">
-                        <User className="w-3 h-3" /> 3 Entities Present
-                      </div>
-                      <button className="text-[10px] font-mono text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
-                        VIEW DETAILS <ChevronRight className="w-3 h-3" />
+                    <div className="space-y-3">
+                      <button className={`w-full py-3 rounded font-mono text-xs transition-all border flex items-center justify-center gap-2 bg-white/5 border-white/10 hover:bg-white/10 text-white`}>
+                        <Activity className="w-4 h-4" /> INITIATE TRAINING
+                      </button>
+                      <button className={`w-full py-3 rounded font-mono text-xs transition-all border flex items-center justify-center gap-2`} style={{ backgroundColor: getModuleColor(selectedModule.color, 0.2), borderColor: getModuleColor(selectedModule.color, 0.5), color: getModuleColor(selectedModule.color) }}>
+                        <Zap className="w-4 h-4" /> FORCE OPTIMIZATION
                       </button>
                     </div>
                   </GlassPanel>
@@ -304,64 +412,78 @@ export default function CityMapNeuroGrid7({ onNavigate }: CityMapProps) {
           </GlassPanel>
         </div>
 
-        {/* Right Sidebar: Stats & Entities */}
+        {/* Right Sidebar: Stats & Top Trainees */}
         <div className="lg:col-span-1 space-y-6">
           <GlassPanel className="p-5 border-white/5">
-            <h3 className="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-4">Training Efficiency</h3>
+            <h3 className="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-4">Growth Preferences</h3>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-[10px] font-mono mb-1">
-                  <span className="text-slate-400">NEURAL SYNC</span>
-                  <span className="text-indigo-400">92%</span>
+                  <span className="text-slate-400 uppercase">Aggression</span>
+                  <span className="text-rose-400">{Math.round(growthPrefs.aggression)}%</span>
                 </div>
                 <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-500 w-[92%]" />
+                  <motion.div 
+                    className="h-full bg-rose-500" 
+                    animate={{ width: `${growthPrefs.aggression}%` }}
+                  />
                 </div>
               </div>
               <div>
                 <div className="flex justify-between text-[10px] font-mono mb-1">
-                  <span className="text-slate-400">COMBAT READINESS</span>
-                  <span className="text-neon-fuchsia">78%</span>
+                  <span className="text-slate-400 uppercase">Resilience</span>
+                  <span className="text-blue-400">{Math.round(growthPrefs.resilience)}%</span>
                 </div>
                 <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-neon-fuchsia w-[78%]" />
+                  <motion.div 
+                    className="h-full bg-blue-500" 
+                    animate={{ width: `${growthPrefs.resilience}%` }}
+                  />
                 </div>
               </div>
               <div>
                 <div className="flex justify-between text-[10px] font-mono mb-1">
-                  <span className="text-slate-400">DATA STABILITY</span>
-                  <span className="text-neon-cyan">85%</span>
+                  <span className="text-slate-400 uppercase">Intelligence</span>
+                  <span className="text-emerald-400">{Math.round(growthPrefs.intelligence)}%</span>
                 </div>
                 <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-neon-cyan w-[85%]" />
+                  <motion.div 
+                    className="h-full bg-emerald-500" 
+                    animate={{ width: `${growthPrefs.intelligence}%` }}
+                  />
                 </div>
               </div>
             </div>
           </GlassPanel>
 
           <GlassPanel className="p-5 border-white/5">
-            <h3 className="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-4">Top Trainees</h3>
+            <h3 className="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-4">Elite Trainees</h3>
             <div className="space-y-3">
               {roster.slice(0, 3).map(ent => (
                 <div key={ent.id} className="flex items-center gap-3 p-2 rounded bg-white/5 border border-white/5">
                   <img src={ent.imageUrl} alt={ent.name} className="w-10 h-10 rounded border border-white/10 object-cover" referrerPolicy="no-referrer" />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-white truncate">{ent.name}</div>
-                    <div className="text-[10px] font-mono text-indigo-400">LVL {ent.level} | SYNC {ent.syncRate}%</div>
+                    <div className="text-[10px] font-mono text-violet-400 flex items-center gap-1">
+                      <Sparkles className="w-2 h-2" /> LVL {ent.level} | {ent.syncRate}% SYNC
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </GlassPanel>
+
+          <GlassPanel className="p-4 bg-violet-500/5 border-violet-500/20">
+            <div className="flex items-center gap-2 text-violet-400 mb-2">
+              <Network className="w-4 h-4" />
+              <span className="text-[10px] font-mono font-bold uppercase">Neural Path Update</span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-mono leading-tight">
+              New training heuristics available in the Experimental Zone. High risk of mutation detected.
+            </p>
+          </GlassPanel>
         </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes scan {
-          0% { top: 0; }
-          100% { top: 100%; }
-        }
-      `}} />
     </motion.div>
   );
 }
