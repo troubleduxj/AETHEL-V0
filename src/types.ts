@@ -15,6 +15,8 @@ export interface Memory {
   type: 'log' | 'insight' | 'warning';
 }
 
+export type EntityMood = 'Stable' | 'Excited' | 'Unstable' | 'Melancholy' | 'Analytical';
+
 export interface AIEntity {
   id: string;
   name: string;
@@ -24,6 +26,8 @@ export interface AIEntity {
   level: number;
   resonance: number; // 0-100
   syncRate: number; // 0-100
+  mood: EntityMood;
+  location: PageId;
   status: 'Idle' | 'Processing' | 'Evolving' | 'Fragmented' | 'Combat' | 'Exploring';
   description: string;
   stats: {
@@ -59,5 +63,13 @@ export interface BehaviorLog {
   actionType: 'Attack' | 'Social' | 'Explore' | 'Idle';
   reason: string;
   result: string;
+}
+
+export interface Relationship {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  type: 'Friendly' | 'Hostile' | 'Neutral';
+  strength: number; // 0-100
 }
 

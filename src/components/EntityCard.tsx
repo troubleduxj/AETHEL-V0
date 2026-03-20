@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { AIEntity } from '../types';
+import { AIEntity, EntityMood } from '../types';
+import { MapPin, Activity } from 'lucide-react';
 
 interface EntityCardProps {
   entity: AIEntity;
@@ -12,6 +13,22 @@ const rarityColors = {
   Rare: 'text-blue-400 border-blue-400/30',
   Epic: 'text-fuchsia-400 border-fuchsia-400/30',
   Anomaly: 'text-red-500 border-red-500/30 animate-pulse',
+};
+
+const moodColors: Record<EntityMood, string> = {
+  Stable: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]',
+  Excited: 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]',
+  Unstable: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]',
+  Melancholy: 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]',
+  Analytical: 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]',
+};
+
+const locationNames: Record<string, string> = {
+  'city-nexus-prime': 'Nexus Prime',
+  'city-neural-archives': 'Origin Lab',
+  'city-synth-sea': 'Synth Sea',
+  'city-sector-7g': 'Sector 7G',
+  'city-void-node': 'Void Node',
 };
 
 export function EntityCard({ entity, onClick }: EntityCardProps) {
@@ -37,11 +54,27 @@ export function EntityCard({ entity, onClick }: EntityCardProps) {
       <div className="relative z-10 h-full flex flex-col justify-between p-5">
         <div className="flex justify-between items-start">
           <div>
-            <div className="font-mono text-xs text-neon-cyan/70 tracking-widest uppercase">{entity.designation}</div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="font-mono text-[10px] text-neon-cyan/70 tracking-widest uppercase">{entity.designation}</div>
+              {entity.mood && (
+                <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded-full bg-black/40 border border-white/10">
+                  <div className={`w-1.5 h-1.5 rounded-full ${moodColors[entity.mood]}`} />
+                  <span className="text-[8px] font-mono text-slate-300 uppercase tracking-tighter">{entity.mood}</span>
+                </div>
+              )}
+            </div>
             <h3 className="font-display text-2xl font-bold text-white tracking-tight">{entity.name}</h3>
           </div>
-          <div className={`px-2 py-1 text-[10px] font-mono uppercase border rounded-full backdrop-blur-sm ${rarityColors[entity.rarity]}`}>
-            {entity.rarity}
+          <div className="flex flex-col items-end gap-2">
+            <div className={`px-2 py-1 text-[10px] font-mono uppercase border rounded-full backdrop-blur-sm ${rarityColors[entity.rarity]}`}>
+              {entity.rarity}
+            </div>
+            {entity.location && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-mono text-slate-400 uppercase">
+                <MapPin className="w-2.5 h-2.5 text-neon-cyan" />
+                {locationNames[entity.location] || 'Unknown'}
+              </div>
+            )}
           </div>
         </div>
 

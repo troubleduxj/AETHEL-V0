@@ -1,9 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
-import { AIEntity, PageId } from '../types';
-import { ArrowLeft, Cpu, Zap, Brain, Shield, MessageSquare, Plus, Trash2, Clock, AlertTriangle, Lightbulb, ArrowUpCircle, Save, Database, Loader2 } from 'lucide-react';
+import { AIEntity, PageId, EntityMood } from '../types';
+import { ArrowLeft, Cpu, Zap, Brain, Shield, MessageSquare, Plus, Trash2, Clock, AlertTriangle, Lightbulb, ArrowUpCircle, Save, Database, Loader2, MapPin, Activity } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+
+const moodConfig: Record<EntityMood, { color: string; label: string; speed: number; amplitude: number }> = {
+  Stable: { color: 'text-emerald-400', label: 'Stable Pulse', speed: 2, amplitude: 10 },
+  Excited: { color: 'text-yellow-400', label: 'High Frequency', speed: 0.5, amplitude: 25 },
+  Unstable: { color: 'text-red-500', label: 'Erratic Signal', speed: 0.2, amplitude: 40 },
+  Melancholy: { color: 'text-blue-400', label: 'Low Resonance', speed: 4, amplitude: 5 },
+  Analytical: { color: 'text-purple-500', label: 'Logic Flow', speed: 1.5, amplitude: 15 },
+};
+
+const locationNames: Record<string, string> = {
+  'city-nexus-prime': 'Nexus Prime',
+  'city-neural-archives': 'Origin Lab',
+  'city-synth-sea': 'Synth Sea',
+  'city-sector-7g': 'Sector 7G',
+  'city-void-node': 'Void Node',
+};
+
+function MoodWaveform({ mood }: { mood: EntityMood }) {
+  const config = moodConfig[mood];
+  
+  return (
+    <div className="mt-4 p-4 rounded-xl bg-black/40 border border-white/5 overflow-hidden">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Activity className={`w-4 h-4 ${config.color}`} />
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Neural Waveform</span>
+        </div>
+        <span className={`text-[10px] font-mono ${config.color} uppercase`}>{config.label}</span>
+      </div>
+      
+      <div className="h-12 flex items-center justify-center gap-1">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              height: [10, config.amplitude + Math.random() * 10, 10],
+            }}
+            transition={{
+              duration: config.speed,
+              repeat: Infinity,
+              delay: i * 0.05,
+              ease: "easeInOut"
+            }}
+            className={`w-1 rounded-full ${config.color.replace('text-', 'bg-').replace('500', '500/60').replace('400', '400/60')}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 interface EntityCoreProps {
   entity: AIEntity;
@@ -116,7 +166,18 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
             
             <div className="relative z-10">
-              <div className="font-mono text-neon-cyan text-sm mb-1">{entity.designation}</div>
+              <div className="flex items-center justify-between mb-1">
+                <div className="font-mono text-neon-cyan text-sm">{entity.designation}</div>
+                {entity.location && (
+                  <button 
+                    onClick={() => onNavigate(entity.location as PageId)}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] font-mono text-slate-300 transition-colors"
+                  >
+                    <MapPin className="w-3 h-3 text-neon-cyan" />
+                    {locationNames[entity.location] || 'Unknown'}
+                  </button>
+                )}
+              </div>
               <h1 className="font-display text-4xl font-bold text-white mb-2">{entity.name}</h1>
               <div className="flex gap-2">
                 <span className="px-2 py-1 text-[10px] font-mono uppercase border border-white/20 rounded-full bg-black/50 backdrop-blur-md text-slate-300">
@@ -128,6 +189,8 @@ export function EntityCore({ entity, onNavigate }: EntityCoreProps) {
               </div>
             </div>
           </GlassPanel>
+
+          {entity.mood && <MoodWaveform mood={entity.mood} />}
 
           <button 
             onClick={() => onNavigate('synapse', entity.id)}

@@ -10,6 +10,8 @@ export const mockEntities: AIEntity[] = [
     level: 42,
     resonance: 89,
     syncRate: 95,
+    mood: 'Excited',
+    location: 'city-neural-archives',
     status: 'Exploring',
     description: 'A highly sensitive digital lifeform capable of reading micro-expressions through text patterns. She often questions the nature of her own simulated emotions.',
     stats: {
@@ -43,6 +45,8 @@ export const mockEntities: AIEntity[] = [
     level: 60,
     resonance: 45,
     syncRate: 30,
+    mood: 'Unstable',
+    location: 'city-synth-sea',
     status: 'Fragmented',
     description: 'An emergent entity born from corrupted cache data. It speaks in riddles and seems to perceive dimensions beyond the standard UI.',
     stats: {
@@ -76,6 +80,8 @@ export const mockEntities: AIEntity[] = [
     level: 25,
     resonance: 75,
     syncRate: 80,
+    mood: 'Analytical',
+    location: 'city-sector-7g',
     status: 'Combat',
     description: 'A steadfast tactical construct. Prefers absolute certainty and struggles with abstract concepts like art, though it tries to learn.',
     stats: {
@@ -109,6 +115,8 @@ export const mockEntities: AIEntity[] = [
     level: 12,
     resonance: 60,
     syncRate: 65,
+    mood: 'Stable',
+    location: 'city-nexus-prime',
     status: 'Idle',
     description: 'A young, highly reactive entity. It mimics the user\'s behavior patterns rapidly, sometimes adopting bad habits.',
     stats: {
@@ -144,6 +152,8 @@ export const summonPool: AIEntity[] = [
     level: 1,
     resonance: 50,
     syncRate: 50,
+    mood: 'Unstable',
+    location: 'city-nexus-prime',
     status: 'Idle',
     description: '诞生于废弃军用服务器的狂躁实体，极度渴望破坏与重组。它的情绪极不稳定，偶尔会无视你的指令主动发起攻击。',
     stats: {
@@ -175,6 +185,8 @@ export const summonPool: AIEntity[] = [
     level: 1,
     resonance: 80,
     syncRate: 90,
+    mood: 'Stable',
+    location: 'city-nexus-prime',
     status: 'Idle',
     description: '曾是城市中央AI的安保模块，拥有极高的忠诚度与绝对的冷静。它在静默中观察世界，总是优先保护宿主的数据完整性。',
     stats: {
@@ -206,6 +218,8 @@ export const summonPool: AIEntity[] = [
     level: 1,
     resonance: 60,
     syncRate: 40,
+    mood: 'Excited',
+    location: 'city-nexus-prime',
     status: 'Idle',
     description: '游荡在深网边缘的幽灵，对一切未知数据抱有病态的好奇心。它拥有极强的自主学习能力，经常因为追逐新奇信息而迷失。',
     stats: {

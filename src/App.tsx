@@ -12,6 +12,7 @@ import { Combat } from './pages/Combat';
 import { AethelShowcase } from './pages/AethelShowcase';
 import { Summon } from './pages/Summon';
 import { SpecOverlay } from './components/SpecOverlay';
+import { GlobalEntityTracker } from './components/GlobalEntityTracker';
 import { LayoutDashboard, Users, Info, Map, Activity, Swords, Sparkles, Database } from 'lucide-react';
 
 import CityMapNexusPrime from './pages/CityMapNexusPrime';
@@ -164,6 +165,11 @@ export default function App() {
         </div>
       </nav>
 
+      {/* Global Entity Tracker (Ticker) */}
+      <div className="fixed top-16 left-0 right-0 z-30">
+        <GlobalEntityTracker />
+      </div>
+
       {/* Main Content Area */}
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 min-h-screen">
         <AnimatePresence mode="wait">
@@ -173,7 +179,7 @@ export default function App() {
           {currentPage === 'roster' && <Roster key="roster" onNavigate={handleNavigate} />}
           {currentPage === 'core' && selectedEntity && <EntityCore key="core" entity={selectedEntity} onNavigate={handleNavigate} />}
           {currentPage === 'synapse' && selectedEntity && <Synapse key="synapse" entity={selectedEntity} onNavigate={handleNavigate} />}
-          {currentPage === 'map' && <WorldMap key="map" onNavigate={handleNavigate} />}
+          {currentPage === 'map' && <WorldMap key="map" onNavigate={handleNavigate} selectedEntityId={selectedEntityId} />}
           {currentPage === 'city-nexus-prime' && <CityMapNexusPrime key="city-nexus-prime" onNavigate={handleNavigate} />}
           {currentPage === 'city-silicon-wastes' && <CityMapSiliconWastes key="city-silicon-wastes" onNavigate={handleNavigate} />}
           {currentPage === 'city-sector-7g' && <CityMapArenaCore key="city-sector-7g" onNavigate={handleNavigate} />}

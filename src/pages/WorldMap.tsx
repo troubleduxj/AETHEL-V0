@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GlassPanel } from '../components/GlassPanel';
-import { PageId } from '../types';
+import { PageId, AIEntity } from '../types';
 import { 
   Zap, Cpu, Brain, ShoppingBag, Target, AlertTriangle, 
   FlaskConical, X, Navigation, ZoomIn, ZoomOut, Maximize,
@@ -44,10 +44,11 @@ const LINKS = [
 
 interface WorldMapProps {
   onNavigate: (page: PageId, entityId?: string) => void;
+  selectedEntityId?: string;
 }
 
-export function WorldMap({ onNavigate }: WorldMapProps) {
-  const { roster } = useAppContext();
+export function WorldMap({ onNavigate, selectedEntityId }: WorldMapProps) {
+  const { roster, relationships } = useAppContext();
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
   const [selectedLink, setSelectedLink] = useState<{ from: string; to: string; color: string } | null>(null);
@@ -64,6 +65,18 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
       return Math.min(Math.max(newScale, 0.5), 3);
     });
   };
+
+  // Calculate entity presence per node
+  const nodePresence = useMemo(() => {
+    const presence: Record<string, AIEntity[]> = {};
+    roster.forEach(ent => {
+      if (ent.location) {
+        if (!presence[ent.location]) presence[ent.location] = [];
+        presence[ent.location].push(ent);
+      }
+    });
+    return presence;
+  }, [roster]);
 
   const getStatusIcon = (status: string) => {
     switch(status) {
@@ -115,6 +128,14 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
       };
     });
   }, [roster]);
+
+  // Helper to get coordinates for an entity
+  const getEntityCoords = (entityId: string) => {
+    const entity = roster.find(e => e.id === entityId);
+    if (!entity || !entity.location) return null;
+    const node = NODES.find(n => n.id === entity.location);
+    return node ? node.coordinates : null;
+  };
 
   return (
     <motion.div 
@@ -169,7 +190,7 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
           animate={{ scale }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-          {/* SVG Layer for Links */}
+          {/* SVG Layer for Links and Relationships */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
             <defs>
               {LINKS.map((link, idx) => (
@@ -179,7 +200,21 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
                   <stop offset="100%" stopColor={getLinkColor(link.color)} stopOpacity="0.2" />
                 </linearGradient>
               ))}
+              
+              {/* Relationship Gradients */}
+              <linearGradient id="grad-friendly" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#22d3ee" stopOpacity="0" />
+                <stop offset="50%" stopColor="#22d3ee" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="grad-hostile" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity="0" />
+                <stop offset="50%" stopColor="#ef4444" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+              </linearGradient>
             </defs>
+
+            {/* Standard Network Links */}
             {LINKS.map((link, idx) => {
               const from = NODES.find(n => n.id === link.from)!.coordinates;
               const to = NODES.find(n => n.id === link.to)!.coordinates;
@@ -190,7 +225,6 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
                   e.stopPropagation();
                   setSelectedLink(link);
                 }}>
-                  {/* Background Glow Line */}
                   <line 
                     x1={`${from.x}%`} y1={`${from.y}%`} 
                     x2={`${to.x}%`} y2={`${to.y}%`} 
@@ -198,7 +232,6 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
                     strokeWidth={isSelected ? 4 : 2} 
                     strokeOpacity={isSelected ? 0.4 : 0.1} 
                   />
-                  {/* Flowing Dash Line */}
                   <motion.line 
                     x1={`${from.x}%`} y1={`${from.y}%`} 
                     x2={`${to.x}%`} y2={`${to.y}%`} 
@@ -209,6 +242,75 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
                     animate={{ strokeDashoffset: [0, -100] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
                   />
+                </g>
+              );
+            })}
+
+            {/* AI Relationships Visualization */}
+            {relationships.map((rel, idx) => {
+              const fromCoords = getEntityCoords(rel.sourceId);
+              const toCoords = getEntityCoords(rel.targetId);
+              if (!fromCoords || !toCoords) return null;
+
+              const isFriendly = rel.type === 'Friendly';
+              const isHostile = rel.type === 'Hostile';
+
+              return (
+                <g key={`rel-${idx}`}>
+                  {/* Connection Line */}
+                  <motion.line
+                    x1={`${fromCoords.x}%`} y1={`${fromCoords.y}%`}
+                    x2={`${toCoords.x}%`} y2={`${toCoords.y}%`}
+                    stroke={isFriendly ? '#22d3ee' : isHostile ? '#ef4444' : '#94a3b8'}
+                    strokeWidth={isHostile ? 2 : 1}
+                    strokeOpacity={0.3}
+                    strokeDasharray={isFriendly ? "5 5" : "none"}
+                    animate={isHostile ? { strokeOpacity: [0.1, 0.6, 0.1] } : {}}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                  
+                  {/* Particle/Flow Animation */}
+                  <motion.circle
+                    r={isFriendly ? 2 : 3}
+                    fill={isFriendly ? '#22d3ee' : '#ef4444'}
+                    initial={{ cx: `${fromCoords.x}%`, cy: `${fromCoords.y}%`, opacity: 0 }}
+                    animate={{ 
+                      cx: [`${fromCoords.x}%`, `${toCoords.x}%`], 
+                      cy: [`${fromCoords.y}%`, `${toCoords.y}%`],
+                      opacity: [0, 1, 0]
+                    }}
+                    transition={{ 
+                      duration: 3, 
+                      repeat: Infinity, 
+                      delay: idx * 0.5,
+                      ease: "linear"
+                    }}
+                  />
+
+                  {/* Interaction Bubbles */}
+                  <foreignObject
+                    x={`${(fromCoords.x + toCoords.x) / 2}%`}
+                    y={`${(fromCoords.y + toCoords.y) / 2}%`}
+                    width="100"
+                    height="40"
+                    className="overflow-visible pointer-events-none"
+                    style={{ transform: 'translate(-50px, -20px)' }}
+                  >
+                    <motion.div 
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: [0, 1, 1, 0], opacity: [0, 1, 1, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, delay: idx * 2 }}
+                      className={`px-2 py-1 rounded-full text-[8px] font-mono border backdrop-blur-sm flex items-center gap-1 whitespace-nowrap
+                        ${isFriendly ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'bg-red-500/20 border-red-500/50 text-red-400'}
+                      `}
+                    >
+                      {isFriendly ? (
+                        <><Users className="w-2 h-2" /> COLLABORATING</>
+                      ) : (
+                        <><AlertTriangle className="w-2 h-2" /> CONFLICT DETECTED</>
+                      )}
+                    </motion.div>
+                  </foreignObject>
                 </g>
               );
             })}
@@ -263,6 +365,66 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
               >
                 {node.icon}
                 
+                {/* Avatar Projections */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {nodePresence[node.id]?.map((ent, idx) => {
+                    const isSelected = ent.id === selectedEntityId;
+                    const angle = (idx / nodePresence[node.id].length) * Math.PI * 2;
+                    const radius = isSelected ? 40 : 30;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+
+                    return (
+                      <motion.div
+                        key={ent.id}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: isSelected ? 1 : 0.6, scale: 1 }}
+                        className="absolute left-1/2 top-1/2 pointer-events-auto"
+                        style={{ x, y, marginLeft: -12, marginTop: -12 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate('core', ent.id);
+                        }}
+                      >
+                        {/* Projection Ring */}
+                        <motion.div
+                          className={`absolute -inset-1 rounded-full border-2 blur-[2px] 
+                            ${ent.syncRate < 50 ? 'border-red-500' : isSelected ? 'border-cyan-400' : 'border-white/30'}
+                          `}
+                          animate={{ rotate: 360, scale: [1, 1.1, 1] }}
+                          transition={{ 
+                            rotate: { duration: 10, repeat: Infinity, ease: "linear" },
+                            scale: { duration: 2, repeat: Infinity }
+                          }}
+                        />
+                        
+                        {/* Avatar Icon */}
+                        <div className={`w-6 h-6 rounded-full overflow-hidden border shadow-lg relative z-10
+                          ${isSelected ? 'border-cyan-400 ring-4 ring-cyan-400/20' : 'border-white/20'}
+                        `}>
+                          <img 
+                            src={ent.imageUrl} 
+                            alt={ent.name} 
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+
+                        {/* Selected Indicator */}
+                        {isSelected && (
+                          <motion.div 
+                            className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap bg-cyan-500 text-black text-[8px] font-bold px-1 rounded"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                          >
+                            ACTIVE
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
                 {/* Contested Pulse */}
                 {node.status === 'Contested' && (
                   <div className="absolute -inset-1 rounded-full border border-fuchsia-500 animate-ping opacity-50" />
@@ -346,14 +508,25 @@ export function WorldMap({ onNavigate }: WorldMapProps) {
                       <Users className="w-3 h-3" /> Local Entity Presence
                     </h4>
                     <div className="flex -space-x-2 mb-4">
-                      {roster.slice(0, 4).map(ent => (
-                        <div key={ent.id} className="w-8 h-8 rounded-full border border-white/20 bg-black overflow-hidden">
-                          <img src={ent.imageUrl} alt={ent.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        </div>
-                      ))}
-                      <div className="w-8 h-8 rounded-full border border-white/20 bg-slate-900 flex items-center justify-center text-[10px] font-mono text-slate-400">
-                        +12
-                      </div>
+                      {nodePresence[selectedNode.id] ? (
+                        <>
+                          {nodePresence[selectedNode.id].map(ent => (
+                            <div key={ent.id} className="w-8 h-8 rounded-full border border-white/20 bg-black overflow-hidden group/avatar relative">
+                              <img src={ent.imageUrl} alt={ent.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity">
+                                <span className="text-[8px] text-white font-mono">{ent.name}</span>
+                              </div>
+                            </div>
+                          ))}
+                          {nodePresence[selectedNode.id].length > 4 && (
+                            <div className="w-8 h-8 rounded-full border border-white/20 bg-slate-900 flex items-center justify-center text-[10px] font-mono text-slate-400">
+                              +{nodePresence[selectedNode.id].length - 4}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-[10px] font-mono text-slate-600 italic">No entities currently deployed here.</div>
+                      )}
                     </div>
                   </div>
 
