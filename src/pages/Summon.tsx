@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
 import { summonPool } from '../data/mockData';
+import { AethelCard } from '../components/AethelCard';
 import { EntityCard } from '../components/EntityCard';
 import { Sparkles, Database, Loader2 } from 'lucide-react';
 import { AIEntity, PageId } from '../types';
+import { entities } from '../data';
 
 export function Summon({ onNavigate }: { onNavigate: (page: PageId, entityId?: string) => void }) {
   const { dataFragments, spendDataFragments, addEntityToRoster } = useAppContext();
@@ -120,26 +122,23 @@ export function Summon({ onNavigate }: { onNavigate: (page: PageId, entityId?: s
         </div>
 
         {/* Showcase Section */}
-        <div className="w-full max-w-6xl">
-          <div className="flex items-center gap-4 mb-8">
+        <div className="w-full max-w-7xl px-4">
+          <div className="flex items-center gap-4 mb-12">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10" />
-            <h2 className="font-display text-xl font-bold text-white tracking-widest uppercase flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-neon-cyan" />
+            <h2 className="font-display text-2xl font-bold text-white tracking-[0.2em] uppercase flex items-center gap-3">
+              <Sparkles className="w-6 h-6 text-neon-cyan" />
               Entity Showcase
             </h2>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/10" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {summonPool.map((entity) => (
+          <div className="flex flex-wrap justify-center gap-8 perspective-[2000px]">
+            {entities.map((entity) => (
               <div key={entity.id} className="relative">
-                <EntityCard 
-                  entity={entity} 
-                  onClick={() => {}} 
-                />
+                <AethelCard entity={entity} />
                 {/* Rarity Overlay for Showcase */}
-                <div className="absolute top-2 left-2 z-30 pointer-events-none">
-                  <div className="bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white/70 uppercase">
+                <div className="absolute top-4 left-4 z-30 pointer-events-none">
+                  <div className="bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white/70 uppercase tracking-wider">
                     Pool Item
                   </div>
                 </div>
